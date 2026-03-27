@@ -72,19 +72,17 @@ public class Player {
         for (int i = 0; i < HandCards.size(); i++) {
             //需要GUI同学的画图
             for (int j = 0; j < 3; j++) {
-
+                /* if (listener判断){
+                    //使用卡牌
+                    //判断是否合法
+                }
             }
             if(checkIfWin(PropertyCards)){
                 drawCards.update();
                 //主菜单
-            };
-            /* if (listener判断){
-                //使用卡牌
+            }*/
             }
-
-            */
         }
-
         isOnTurn = false;
     }
 }

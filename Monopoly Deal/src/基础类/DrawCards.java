@@ -32,32 +32,20 @@ public class DrawCards {
         return DrawCards;
     }
 
-
-
     private void addMoneyCards(){
-        for (int i = 0; i < 6; i++) {
-            MoneyCards moneyCards = new MoneyCards(1);
-            DrawCards.add(moneyCards);
+        int[] moneyValues = {1,1,1,1,1,1,  // 6张1
+                2,2,2,2,2,    // 5张2
+                3,4,3,4,3,4,  // 3张3 + 3张4
+                5,5,          // 2张5
+                6};           // 1张6
+        // 循环添加所有卡牌
+        for (int value : moneyValues) {
+            DrawCards.add(new MoneyCards(value));
         }
-        for (int i = 0; i < 5; i++) {
-            MoneyCards moneyCards = new MoneyCards(2);
-            DrawCards.add(moneyCards);
-        }
-        for (int i = 0; i < 3; i++) {
-            MoneyCards moneyCards = new MoneyCards(3);
-            DrawCards.add(moneyCards);
-            MoneyCards moneyCards1 = new MoneyCards(4);
-            DrawCards.add(moneyCards1);
-        }
-        for (int i = 0; i < 2; i++) {
-            MoneyCards moneyCards = new MoneyCards(5);
-            DrawCards.add(moneyCards);
-        }
-        MoneyCards moneyCards1 = new MoneyCards(6);
-        DrawCards.add(moneyCards1);
     }
 
     private void addActionCards(){
+        //这个也这么干
         for (int i = 0; i < 3; i++) {
             ActionCards ac = new ActionCards(ActionCardType.SLY_DEAL);
             DrawCards.add(ac);
@@ -100,7 +88,6 @@ public class DrawCards {
             DrawCards.add(ac10);
             ActionCards ac11 = new  ActionCards(ActionCardType.WILD_CARDS_WITH_PINK_AND_ORANGE);
             DrawCards.add(ac11);
-
         }
 
         for (int i = 0; i < 10; i++) {
@@ -148,5 +135,29 @@ public class DrawCards {
             PropertiesCards ps = new PropertiesCards(PropertiesCardsType.BLACK);
             DrawCards.add(ps);
         }
+        //模仿一下做 做一个颜色数组 然后用二重数组 写索引和数量
+        /*PropertiesCardsType[][] config = {
+    {PropertiesCardsType.DARK_BLUE, 2},
+    {PropertiesCardsType.BROWN, 2},
+    {PropertiesCardsType.LIGHT_GREEN, 2},
+
+    {PropertiesCardsType.ORANGE, 3},
+    {PropertiesCardsType.RED, 3},
+    {PropertiesCardsType.DARK_GREEN, 3},
+    {PropertiesCardsType.LIGHT_BLUE, 3},
+    {PropertiesCardsType.YELLOW, 3},
+    {PropertiesCardsType.PINK, 3},
+
+    {PropertiesCardsType.BLACK, 4}
+};
+
+// 批量添加
+for (PropertiesCardsType[] pair : config) {
+    PropertiesCardsType type = pair[0];
+    int count = pair[1];
+    for (int i = 0; i < count; i++) {
+        DrawCards.add(new PropertiesCards(type));
+    }
+}*/
     }
 }
