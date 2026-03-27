@@ -2,22 +2,21 @@ package 基础类;
 
 import javax.imageio.metadata.IIOMetadataFormatImpl;
 import java.util.ArrayList;
+import java.util.Collections;
 
 public class DrawCards {
     private ArrayList<Card> DrawCards;
     public DrawCards() {
         DrawCards = new ArrayList<>();
+        addActionCards();
+        addMoneyCards();
+        addPropertiesCards();
+        shuffleDrawCards();
         //创建对象时 更新
     }
 
-    public void xipai(){
-        if(DrawCards.size()<5){
-            //更新
-        }
-    }
-
-    public ArrayList<Card> getDrawCards() {
-        return DrawCards;
+    public void shuffleDrawCards() {
+        Collections.shuffle(DrawCards);
     }
 
     public void update(){
@@ -25,8 +24,15 @@ public class DrawCards {
         addMoneyCards();
         addActionCards();
         addPropertiesCards();
+        shuffleDrawCards();
         //游戏结束时 更新牌堆
     }
+
+    public ArrayList<Card> getDrawCards() {
+        return DrawCards;
+    }
+
+
 
     private void addMoneyCards(){
         for (int i = 0; i < 6; i++) {
@@ -78,9 +84,40 @@ public class DrawCards {
             DrawCards.add(ac2);
             ActionCards ac3 = new ActionCards(ActionCardType.DEAL_BREAKER);
             DrawCards.add(ac3);
+            ActionCards ac4 = new ActionCards(ActionCardType.WILD_CARDS_WITH_MULTIPLE_COLOR);
+            DrawCards.add(ac4);
+            ActionCards ac5 = new ActionCards(ActionCardType.WILD_CARDS_WITH_RED_AND_YELLOW);
+            DrawCards.add(ac5);
+            ActionCards ac6 = new  ActionCards(ActionCardType.RENT_WITH_DARK_BLUE_AND_DARK_GREEN);
+            DrawCards.add(ac6);
+            ActionCards ac7 = new  ActionCards(ActionCardType.RENT_WITH_BROWN_AND_LIGHT_BLUE);
+            DrawCards.add(ac7);
+            ActionCards ac8 = new  ActionCards(ActionCardType.RENT_WITH_BLACK_AND_LIGHT_GREEN);
+            DrawCards.add(ac8);
+            ActionCards ac9 = new  ActionCards(ActionCardType.RENT_WITH_RED_AND_YELLOW);
+            DrawCards.add(ac9);
+            ActionCards ac10 = new  ActionCards(ActionCardType.RENT_WITH_ORANGE_AND_PINK);
+            DrawCards.add(ac10);
+            ActionCards ac11 = new  ActionCards(ActionCardType.WILD_CARDS_WITH_PINK_AND_ORANGE);
+            DrawCards.add(ac11);
 
         }
 
+        for (int i = 0; i < 10; i++) {
+            ActionCards ac = new ActionCards(ActionCardType.PASS_GO);
+            DrawCards.add(ac);
+        }
+
+        ActionCards ac = new ActionCards(ActionCardType.WILD_CARDS_WITH_BLACK_AND_DARK_GREEN);
+        DrawCards.add(ac);
+        ActionCards ac1 = new ActionCards(ActionCardType.WILD_CARDS_WITH_BLACK_AND_LIGHT_BLUE);
+        DrawCards.add(ac1);
+        ActionCards ac2 = new ActionCards(ActionCardType.WILD_CARDS_WITH_BLACK_AND_LIGHT_GREEN);
+        DrawCards.add(ac2);
+        ActionCards ac3 = new ActionCards(ActionCardType.WILD_CARDS_WITH_LIGHT_BLUE_AND_BROWN);
+        DrawCards.add(ac3);
+        ActionCards ac4 = new ActionCards(ActionCardType.WILD_CARDS_WITH_DARK_BLUE_AND_DARK_GREEN);
+        DrawCards.add(ac4);
     }
 
     private void addPropertiesCards(){
@@ -111,7 +148,5 @@ public class DrawCards {
             PropertiesCards ps = new PropertiesCards(PropertiesCardsType.BLACK);
             DrawCards.add(ps);
         }
-
-
     }
 }

@@ -5,6 +5,7 @@ public class ActionCards extends Card {
 
     public ActionCards(ActionCardType actionCardType) {
         this.actionCardType = actionCardType;
+        value = actionCardType.getTypeValue();
     }
 
     public ActionCardType getActionCardType() {

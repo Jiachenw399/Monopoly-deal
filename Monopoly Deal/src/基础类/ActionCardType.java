@@ -7,7 +7,11 @@ public enum ActionCardType {
     FORCED_DEAL(3),//交换你和其他一个人的地产 3
 
     DEBT_COLLECTOR(3),//随便找一个人拿五块 放手牌 3
-    RENT_WITH_TWO_COLOR(1),//对所有人使用 给你在那两个颜色中选择的任意一个颜色地的钱 放手牌
+    RENT_WITH_RED_AND_YELLOW(1),
+    RENT_WITH_ORANGE_AND_PINK(1),
+    RENT_WITH_BROWN_AND_LIGHT_BLUE(1),
+    RENT_WITH_BLACK_AND_LIGHT_GREEN(1),
+    RENT_WITH_DARK_BLUE_AND_DARK_GREEN(1),//对所有人使用 给你在那两个颜色中选择的任意一个颜色地的钱 放手牌
     //红黄2 橙粉2 浅蓝棕2 浅绿黑2 深蓝深绿2
     RENT_WITH_MULTIPLE_COLOR(3),//对一个人使用 给你选择的任意一个颜色地的钱 放手牌 3
     DOUBLE_THE_RENT(1),//和以上两个rent之一一起使用 double 2
@@ -21,12 +25,12 @@ public enum ActionCardType {
 
     PASS_GO(1),//无中生有 摸两张牌 10
 
+    WILD_CARDS_WITH_PINK_AND_ORANGE(2),
+    WILD_CARDS_WITH_RED_AND_YELLOW(3),
     WILD_CARDS_WITH_BLACK_AND_DARK_GREEN(4),
     WILD_CARDS_WITH_BLACK_AND_LIGHT_BLUE(4),
     WILD_CARDS_WITH_BLACK_AND_LIGHT_GREEN(2),
     WILD_CARDS_WITH_LIGHT_BLUE_AND_BROWN(1),
-    WILD_CARDS_WITH_PINK_AND_ORANGE(2),
-    WILD_CARDS_WITH_RED_AND_YELLOW(3),
     WILD_CARDS_WITH_DARK_BLUE_AND_DARK_GREEN(4),//两种颜色之一的万能牌 随时可以变颜色
     //红黄2 橙粉2 浅蓝棕1 黑深绿1 黑浅蓝1 黑浅绿1 深蓝深绿1
 
