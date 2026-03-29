@@ -1,9 +1,9 @@
 package 基础类;
 
-import javax.imageio.metadata.IIOMetadataFormatImpl;
 import java.util.ArrayList;
 import java.util.Collections;
 
+//牌堆 功能完全实现 辛苦修改bug的同学 进行bug测试
 public class DrawCards {
     private ArrayList<Card> DrawCards;
     public DrawCards() {
@@ -28,9 +28,7 @@ public class DrawCards {
         //游戏结束时 更新牌堆
     }
 
-    public ArrayList<Card> getDrawCards() {
-        return DrawCards;
-    }
+    public ArrayList<Card> getDrawCards() {return DrawCards;}
 
     private void addMoneyCards(){
         int[] moneyValues = {1,1,1,1,1,1,  // 6张1
@@ -45,119 +43,79 @@ public class DrawCards {
     }
 
     private void addActionCards(){
-        //这个也这么干
-        for (int i = 0; i < 3; i++) {
-            ActionCards ac = new ActionCards(ActionCardType.SLY_DEAL);
-            DrawCards.add(ac);
-            ActionCards ac1 = new ActionCards(ActionCardType.DEBT_COLLECTOR);
-            DrawCards.add(ac1);
-            ActionCards ac2 = new ActionCards(ActionCardType.RENT_WITH_MULTIPLE_COLOR);
-            DrawCards.add(ac2);
-            ActionCards ac3 = new ActionCards(ActionCardType.HOUSE);
-            DrawCards.add(ac3);
-            ActionCards ac4 = new ActionCards(ActionCardType.FORCED_DEAL);
-            DrawCards.add(ac4);
-            ActionCards ac5 = new ActionCards(ActionCardType.BIRTHDAY);
-            DrawCards.add(ac5);
-            ActionCards ac6 = new ActionCards(ActionCardType.JUST_SAY_NO);
-            DrawCards.add(ac6);
-        }
+        int [] amount={
+            3,3,3,3,3,3,3,
+            2,2,2,2,2,2,2,2,2,2,2,2,
+            10,
+            1,1,1,1,1
+        };
 
-        for (int i = 0; i < 2; i++) {
-            ActionCards ac = new ActionCards(ActionCardType.DOUBLE_THE_RENT);
-            DrawCards.add(ac);
-            ActionCards ac1 = new ActionCards(ActionCardType.RENT_WITH_MULTIPLE_COLOR);
-            DrawCards.add(ac1);
-            ActionCards ac2 = new ActionCards(ActionCardType.HOTEL);
-            DrawCards.add(ac2);
-            ActionCards ac3 = new ActionCards(ActionCardType.DEAL_BREAKER);
-            DrawCards.add(ac3);
-            ActionCards ac4 = new ActionCards(ActionCardType.WILD_CARDS_WITH_MULTIPLE_COLOR);
-            DrawCards.add(ac4);
-            ActionCards ac5 = new ActionCards(ActionCardType.WILD_CARDS_WITH_RED_AND_YELLOW);
-            DrawCards.add(ac5);
-            ActionCards ac6 = new  ActionCards(ActionCardType.RENT_WITH_DARK_BLUE_AND_DARK_GREEN);
-            DrawCards.add(ac6);
-            ActionCards ac7 = new  ActionCards(ActionCardType.RENT_WITH_BROWN_AND_LIGHT_BLUE);
-            DrawCards.add(ac7);
-            ActionCards ac8 = new  ActionCards(ActionCardType.RENT_WITH_BLACK_AND_LIGHT_GREEN);
-            DrawCards.add(ac8);
-            ActionCards ac9 = new  ActionCards(ActionCardType.RENT_WITH_RED_AND_YELLOW);
-            DrawCards.add(ac9);
-            ActionCards ac10 = new  ActionCards(ActionCardType.RENT_WITH_ORANGE_AND_PINK);
-            DrawCards.add(ac10);
-            ActionCards ac11 = new  ActionCards(ActionCardType.WILD_CARDS_WITH_PINK_AND_ORANGE);
-            DrawCards.add(ac11);
-        }
+        ActionCardType [] actionCardType={
+            ActionCardType.SLY_DEAL,
+            ActionCardType.RENT_WITH_MULTIPLE_COLOR,
+            ActionCardType.RENT_WITH_MULTIPLE_COLOR,
+            ActionCardType.HOUSE,
+            ActionCardType.FORCED_DEAL,
+            ActionCardType.BIRTHDAY,
+            ActionCardType.JUST_SAY_NO,
 
-        for (int i = 0; i < 10; i++) {
-            ActionCards ac = new ActionCards(ActionCardType.PASS_GO);
-            DrawCards.add(ac);
-        }
+            ActionCardType.DOUBLE_THE_RENT,
+            ActionCardType.RENT_WITH_MULTIPLE_COLOR,
+            ActionCardType.HOTEL,
+            ActionCardType.DEAL_BREAKER,
+            ActionCardType.WILD_CARDS_WITH_MULTIPLE_COLOR,
+            ActionCardType.WILD_CARDS_WITH_RED_AND_YELLOW,
+            ActionCardType.RENT_WITH_DARK_BLUE_AND_DARK_GREEN,
+            ActionCardType.RENT_WITH_BROWN_AND_LIGHT_BLUE,
+            ActionCardType.RENT_WITH_BLACK_AND_LIGHT_GREEN,
+            ActionCardType.RENT_WITH_RED_AND_YELLOW,
+            ActionCardType.RENT_WITH_ORANGE_AND_PINK,
+            ActionCardType.WILD_CARDS_WITH_PINK_AND_ORANGE,
 
-        ActionCards ac = new ActionCards(ActionCardType.WILD_CARDS_WITH_BLACK_AND_DARK_GREEN);
-        DrawCards.add(ac);
-        ActionCards ac1 = new ActionCards(ActionCardType.WILD_CARDS_WITH_BLACK_AND_LIGHT_BLUE);
-        DrawCards.add(ac1);
-        ActionCards ac2 = new ActionCards(ActionCardType.WILD_CARDS_WITH_BLACK_AND_LIGHT_GREEN);
-        DrawCards.add(ac2);
-        ActionCards ac3 = new ActionCards(ActionCardType.WILD_CARDS_WITH_LIGHT_BLUE_AND_BROWN);
-        DrawCards.add(ac3);
-        ActionCards ac4 = new ActionCards(ActionCardType.WILD_CARDS_WITH_DARK_BLUE_AND_DARK_GREEN);
-        DrawCards.add(ac4);
+            ActionCardType.PASS_GO,
+
+            ActionCardType.WILD_CARDS_WITH_BLACK_AND_DARK_GREEN,
+            ActionCardType.WILD_CARDS_WITH_BLACK_AND_LIGHT_BLUE,
+            ActionCardType.WILD_CARDS_WITH_BLACK_AND_LIGHT_GREEN,
+            ActionCardType.WILD_CARDS_WITH_LIGHT_BLUE_AND_BROWN,
+            ActionCardType.WILD_CARDS_WITH_DARK_BLUE_AND_DARK_GREEN,
+        };
+
+        for (int i = 0; i < actionCardType.length; i++) {
+            for (int j = 0; j < amount[i]; j++) {
+                ActionCards ac = new ActionCards(actionCardType[i]);
+                DrawCards.add(ac);
+            }
+        }
     }
 
     private void addPropertiesCards(){
+        PropertiesCardsType [] types = new PropertiesCardsType[]{
+            PropertiesCardsType.DARK_BLUE,
+            PropertiesCardsType.BROWN,
+            PropertiesCardsType.LIGHT_GREEN,
+
+            PropertiesCardsType.ORANGE,
+            PropertiesCardsType.PINK,
+            PropertiesCardsType.YELLOW,
+            PropertiesCardsType.DARK_GREEN,
+            PropertiesCardsType.LIGHT_BLUE,
+            PropertiesCardsType.RED,
+
+            PropertiesCardsType.BLACK,
+
+        };
+        int [] amount = new int[]{
+            2,2,2,
+            3,3,3,3,3,3,
+            4
+        };
+        for (int i = 0; i < types.length; i++) {
+            for (int j = 0; j < amount[i]; j++) {
+                PropertiesCards ps = new PropertiesCards(types[i]);
+                DrawCards.add(ps);
+            }
+        }
         //深蓝 2 橘色 3 黑色4 红3 深绿3 棕色2 粉色3 浅蓝3 浅绿2 黄3
-        for (int i = 0; i < 2; i++) {
-            PropertiesCards ps = new PropertiesCards(PropertiesCardsType.DARK_BLUE);
-            DrawCards.add(ps);
-            PropertiesCards ps1 = new PropertiesCards(PropertiesCardsType.BROWN);
-            DrawCards.add(ps1);
-            PropertiesCards ps2 = new PropertiesCards(PropertiesCardsType.LIGHT_GREEN);
-            DrawCards.add(ps2);
-        }
-        for (int i = 0; i < 3; i++) {
-            PropertiesCards ps = new PropertiesCards(PropertiesCardsType.ORANGE);
-            DrawCards.add(ps);
-            PropertiesCards ps1 = new PropertiesCards(PropertiesCardsType.RED);
-            DrawCards.add(ps1);
-            PropertiesCards ps2 = new PropertiesCards(PropertiesCardsType.DARK_GREEN);
-            DrawCards.add(ps2);
-            PropertiesCards ps3 = new PropertiesCards(PropertiesCardsType.LIGHT_BLUE);
-            DrawCards.add(ps3);
-            PropertiesCards ps4 = new PropertiesCards(PropertiesCardsType.YELLOW);
-            DrawCards.add(ps4);
-            PropertiesCards ps5 = new PropertiesCards(PropertiesCardsType.PINK);
-            DrawCards.add(ps5);
-        }
-        for (int i = 0; i < 4; i++) {
-            PropertiesCards ps = new PropertiesCards(PropertiesCardsType.BLACK);
-            DrawCards.add(ps);
-        }
-        //模仿一下做 做一个颜色数组 然后用二重数组 写索引和数量
-        /*PropertiesCardsType[][] config = {
-    {PropertiesCardsType.DARK_BLUE, 2},
-    {PropertiesCardsType.BROWN, 2},
-    {PropertiesCardsType.LIGHT_GREEN, 2},
-
-    {PropertiesCardsType.ORANGE, 3},
-    {PropertiesCardsType.RED, 3},
-    {PropertiesCardsType.DARK_GREEN, 3},
-    {PropertiesCardsType.LIGHT_BLUE, 3},
-    {PropertiesCardsType.YELLOW, 3},
-    {PropertiesCardsType.PINK, 3},
-
-    {PropertiesCardsType.BLACK, 4}
-};
-
-// 批量添加
-for (PropertiesCardsType[] pair : config) {
-    PropertiesCardsType type = pair[0];
-    int count = pair[1];
-    for (int i = 0; i < count; i++) {
-        DrawCards.add(new PropertiesCards(type));
-    }
-}*/
     }
 }

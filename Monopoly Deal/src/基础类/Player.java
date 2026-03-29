@@ -9,8 +9,10 @@ public class Player {
     private boolean isOnTurn;
     private DrawCards drawCards;
     private int UseCardTimes;
+    private ArrayList<Player> Enemy;
 
     public Player(DrawCards drawCards) {
+        Enemy = new ArrayList<>();
         HandCards = new ArrayList<>();
         PropertyCards = new ArrayList<>();
         BankCards = new ArrayList<>();
@@ -35,14 +37,29 @@ public class Player {
         BankCards.add(card);
     }//用钱 对应规则A
 
-    private void putPropertyCard(Card card) {
+    private void putPropertyCard(PropertiesCards card) {
         HandCards.remove(card);
         PropertyCards.add(card);
     }//放地产 对应规则B
 
-    private void putActionCard(Card card) {
+    private void putActionCard(ActionCards card) {
         HandCards.remove(card);
+        switch (card.getActionCardType()) {
+            case PASS_GO:
+                takeCard(2);
+                break;
+        }
     }//对应规则C 行动卡
+
+    public ArrayList<Card> getHandCards() {return HandCards;}
+
+    public ArrayList<Card> getPropertyCards() {return PropertyCards;}
+
+    public ArrayList<Card> getBankCards() {return BankCards;}
+
+    public DrawCards getDrawCards() {return drawCards;}
+
+    public ArrayList<Player> getEnemy() {return Enemy;}
 
     private boolean checkIfWin(ArrayList<Card> cards) {
         for (int i = 0; i < PropertyCards.size(); i++) {
