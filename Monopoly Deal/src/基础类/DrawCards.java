@@ -26,6 +26,7 @@ public class DrawCards {
         addPropertiesCards();
         shuffleDrawCards();
         //游戏结束时 更新牌堆
+
     }
 
     public ArrayList<Card> getDrawCards() {return DrawCards;}
