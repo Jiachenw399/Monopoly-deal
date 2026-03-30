@@ -10,8 +10,8 @@ public class DrawPileAndDiscardPile {
     public DrawPileAndDiscardPile() {
         DrawPile = new ArrayList<>();
         DiscardPile = new ArrayList<>();
-        addActionCards();
         addMoneyCards();
+        addActionCards();
         addPropertiesCards();
         shuffleDrawCards();
         //创建对象时 更新
@@ -42,7 +42,8 @@ public class DrawPileAndDiscardPile {
     public ArrayList<Card> getDiscardPile() {return DiscardPile;}
 
     private void addMoneyCards(){
-        int[] moneyValues = {1,1,1,1,1,1,  // 6张1
+        int[] moneyValues = {
+                1,1,1,1,1,1,  // 6张1
                 2,2,2,2,2,    // 5张2
                 3,4,3,4,3,4,  // 3张3 + 3张4
                 5,5,          // 2张5
@@ -55,31 +56,30 @@ public class DrawPileAndDiscardPile {
 
     private void addActionCards(){
         int [] amount={
-                3,3,3,3,3,3,3,
-                2,2,2,2,2,2,2,2,2,
-                10,
+            3,3,3,3,3,3,3,
+            2,2,2,2,2,2,2,2,
+            10,
         };
 
         ActionCardType [] actionCardType={
-                ActionCardType.SLY_DEAL,
-                ActionCardType.RENT_WITH_MULTIPLE_COLOR,
-                ActionCardType.RENT_WITH_MULTIPLE_COLOR,
-                ActionCardType.HOUSE,
-                ActionCardType.FORCED_DEAL,
-                ActionCardType.BIRTHDAY,
-                ActionCardType.JUST_SAY_NO,
+            ActionCardType.SLY_DEAL,
+            ActionCardType.RENT_WITH_MULTIPLE_COLOR,
+            ActionCardType.HOUSE,
+            ActionCardType.FORCED_DEAL,
+            ActionCardType.BIRTHDAY,
+            ActionCardType.JUST_SAY_NO,
+            ActionCardType.DEBT_COLLECTOR,
 
-                ActionCardType.DOUBLE_THE_RENT,
-                ActionCardType.RENT_WITH_MULTIPLE_COLOR,
-                ActionCardType.HOTEL,
-                ActionCardType.DEAL_BREAKER,
-                ActionCardType.RENT_WITH_DARK_BLUE_AND_DARK_GREEN,
-                ActionCardType.RENT_WITH_BROWN_AND_LIGHT_BLUE,
-                ActionCardType.RENT_WITH_BLACK_AND_LIGHT_GREEN,
-                ActionCardType.RENT_WITH_RED_AND_YELLOW,
-                ActionCardType.RENT_WITH_ORANGE_AND_PINK,
+            ActionCardType.DOUBLE_THE_RENT,
+            ActionCardType.HOTEL,
+            ActionCardType.DEAL_BREAKER,
+            ActionCardType.RENT_WITH_DARK_BLUE_AND_DARK_GREEN,
+            ActionCardType.RENT_WITH_BROWN_AND_LIGHT_BLUE,
+            ActionCardType.RENT_WITH_BLACK_AND_LIGHT_GREEN,
+            ActionCardType.RENT_WITH_RED_AND_YELLOW,
+            ActionCardType.RENT_WITH_ORANGE_AND_PINK,
 
-                ActionCardType.PASS_GO,
+            ActionCardType.PASS_GO,
         };
 
         for (int i = 0; i < actionCardType.length; i++) {

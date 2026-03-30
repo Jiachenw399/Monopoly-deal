@@ -21,7 +21,7 @@ public enum PropertiesCardsType {
     WILD_CARDS_WITH_DARK_BLUE_AND_DARK_GREEN(4),//两种颜色之一的万能牌 随时可以变颜色
     //红黄2 橙粉2 浅蓝棕1 黑深绿1 黑浅蓝1 黑浅绿1 深蓝深绿1
 
-    WILD_CARDS_WITH_MULTIPLE_COLOR(0);
+    WILD_CARDS_WITH_MULTIPLE_COLOR(0);//2
     ;
     private int ColorValue;
 

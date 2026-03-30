@@ -69,6 +69,8 @@ public class Player {
             case BIRTHDAY:
                 takeMoney(2,Enemy);
                 break;
+            case DEBT_COLLECTOR:
+                //takeMoney(5,);
         }
     }//对应规则C 行动卡
 

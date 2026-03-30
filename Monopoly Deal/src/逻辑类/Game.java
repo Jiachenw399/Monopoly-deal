@@ -19,20 +19,23 @@ public class Game {
         isWin = false;
     }
 
-    private void addPlayer() {
+    private void addPlayer() {//有bug
         for (int i = 0; i < 4; i++) {
             Player p = new Player(drawCards);
             players.add(p);
         }//加入四个玩家
 
         for (int i = 0; i < players.size(); i++) {
-            players.get(i).takeCard(5);
             for (int j = 0; j < players.size(); j++) {
                 if(i!=j){
                     players.get(i).getEnemy().add(players.get(j));
                 }
             }
         }//加入后 给每个玩家加上另外的三个敌人
+
+        for (int i = 0; i < players.size(); i++) {
+            players.get(i).takeCard(5);
+        }
     }
 
     public ArrayList<Player> getPlayers() {

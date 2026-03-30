@@ -1,7 +1,7 @@
 package 基础类;
 
 public class PropertiesCards extends Card {
-    private PropertiesCardsType type;
+    private final PropertiesCardsType type;
 
     public PropertiesCardsType getType() {
         return type;
