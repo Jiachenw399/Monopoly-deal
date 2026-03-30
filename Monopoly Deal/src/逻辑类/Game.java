@@ -1,21 +1,21 @@
 package 逻辑类;
 
-import 基础类.DrawCards;
+import 基础类.DrawPileAndDiscardPile;
 import 基础类.Player;
 
 import java.util.ArrayList;
 
 public class Game {
     private ArrayList<Player> players;
-    private DrawCards drawCards;
+    private DrawPileAndDiscardPile drawCards;
     private boolean isWin;
     public static double SCREEN_WIDTH = 690;
     public static double SCREEN_HEIGHT = 450;
 
     public Game(){
         players = new ArrayList<>();
+        drawCards = new DrawPileAndDiscardPile();
         addPlayer();
-        drawCards = new DrawCards();
         isWin = false;
     }
 
@@ -26,6 +26,7 @@ public class Game {
         }//加入四个玩家
 
         for (int i = 0; i < players.size(); i++) {
+            players.get(i).takeCard(5);
             for (int j = 0; j < players.size(); j++) {
                 if(i!=j){
                     players.get(i).getEnemy().add(players.get(j));
@@ -50,9 +51,9 @@ public class Game {
         isWin = win;
     }
 
-    public DrawCards getDrawCards() {return drawCards;}
+    public DrawPileAndDiscardPile getDrawCards() {return drawCards;}
 
-    public void setDrawCards(DrawCards drawCards) {this.drawCards = drawCards;}
+    public void setDrawCards(DrawPileAndDiscardPile drawCards) {this.drawCards = drawCards;}
 
     public static double getScreenWidth() {return SCREEN_WIDTH;}
 

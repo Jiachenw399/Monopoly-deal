@@ -11,7 +11,17 @@ public enum PropertiesCardsType {
     PINK(2),
     LIGHT_BLUE(1),
     LIGHT_GREEN(2),
-    YELLOW(3)
+    YELLOW(3),
+    WILD_CARDS_WITH_PINK_AND_ORANGE(2),
+    WILD_CARDS_WITH_RED_AND_YELLOW(3),
+    WILD_CARDS_WITH_BLACK_AND_DARK_GREEN(4),
+    WILD_CARDS_WITH_BLACK_AND_LIGHT_BLUE(4),
+    WILD_CARDS_WITH_BLACK_AND_LIGHT_GREEN(2),
+    WILD_CARDS_WITH_LIGHT_BLUE_AND_BROWN(1),
+    WILD_CARDS_WITH_DARK_BLUE_AND_DARK_GREEN(4),//两种颜色之一的万能牌 随时可以变颜色
+    //红黄2 橙粉2 浅蓝棕1 黑深绿1 黑浅蓝1 黑浅绿1 深蓝深绿1
+
+    WILD_CARDS_WITH_MULTIPLE_COLOR(0);
     ;
     private int ColorValue;
 

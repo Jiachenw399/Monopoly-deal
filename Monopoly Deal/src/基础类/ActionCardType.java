@@ -23,19 +23,7 @@ public enum ActionCardType {
     JUST_SAY_NO(4),//无懈可击 任意时候 任意玩家 对你出行动卡 只能对你 让他失效 可以反无懈 3
     BIRTHDAY(2),//所有人一人给你两块 3
 
-    PASS_GO(1),//无中生有 摸两张牌 10
-
-    WILD_CARDS_WITH_PINK_AND_ORANGE(2),
-    WILD_CARDS_WITH_RED_AND_YELLOW(3),
-    WILD_CARDS_WITH_BLACK_AND_DARK_GREEN(4),
-    WILD_CARDS_WITH_BLACK_AND_LIGHT_BLUE(4),
-    WILD_CARDS_WITH_BLACK_AND_LIGHT_GREEN(2),
-    WILD_CARDS_WITH_LIGHT_BLUE_AND_BROWN(1),
-    WILD_CARDS_WITH_DARK_BLUE_AND_DARK_GREEN(4),//两种颜色之一的万能牌 随时可以变颜色
-    //红黄2 橙粉2 浅蓝棕1 黑深绿1 黑浅蓝1 黑浅绿1 深蓝深绿1
-
-    WILD_CARDS_WITH_MULTIPLE_COLOR(0);//所有颜色之一的万能牌 可以随时变颜色 唯一一张卡 没有价值 2
-    //全色万能牌不可以偷
+    PASS_GO(1);//无中生有 摸两张牌 10
 
     private int TypeValue;
 

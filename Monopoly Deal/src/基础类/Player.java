@@ -7,11 +7,11 @@ public class Player {
     private ArrayList<Card> PropertyCards;
     private ArrayList<Card> BankCards;
     private boolean isOnTurn;
-    private DrawCards drawCards;
+    private DrawPileAndDiscardPile drawCards;
     private int UseCardTimes;
     private ArrayList<Player> Enemy;
 
-    public Player(DrawCards drawCards) {
+    public Player(DrawPileAndDiscardPile drawCards) {
         Enemy = new ArrayList<>();
         HandCards = new ArrayList<>();
         PropertyCards = new ArrayList<>();
@@ -21,32 +21,53 @@ public class Player {
         this.UseCardTimes = 0;
     }//创建玩家时 创建各种列表 手上的 地产 钱
 
-    private void takeCard(int number) {
+    public void takeCard(int number) {
         for (int i = 0; i < number; i++) {
-            if (drawCards.getDrawCards().isEmpty()) {
+            if (drawCards.getDrawPile().isEmpty()) {
                 drawCards.update();
                 i-=1;
                 continue;
             }
-            HandCards.add(drawCards.getDrawCards().getFirst());
+            HandCards.add(drawCards.getDrawPile().getFirst());
         }
     }//抓牌 抓几张 参数写几 牌不够了 带洗牌功能
 
+    public void takeMoney(int number,Player player) {
+        for (int i = 0; i < player.getBankCards().size(); i++) {
+            //想办法实现不找零也不补齐
+        }
+    }
+
+    public void takeMoney(int number,ArrayList<Player> players) {
+        for (int i = 0; i < players.size(); i++) {
+            takeMoney(number,players.get(i));
+        }
+    }
+
     private void putMoneyCard(Card card) {
+        if(card.getClass().equals(PropertiesCards.class)){
+            return;
+        }
         HandCards.remove(card);
         BankCards.add(card);
+        UseCardTimes++;
     }//用钱 对应规则A
 
     private void putPropertyCard(PropertiesCards card) {
         HandCards.remove(card);
         PropertyCards.add(card);
+        UseCardTimes++;
     }//放地产 对应规则B
 
     private void putActionCard(ActionCards card) {
         HandCards.remove(card);
+        drawCards.getDiscardPile().add(card);
         switch (card.getActionCardType()) {
             case PASS_GO:
                 takeCard(2);
+                break;
+            case BIRTHDAY:
+                takeMoney(2,Enemy);
                 break;
         }
     }//对应规则C 行动卡
@@ -57,7 +78,7 @@ public class Player {
 
     public ArrayList<Card> getBankCards() {return BankCards;}
 
-    public DrawCards getDrawCards() {return drawCards;}
+    public DrawPileAndDiscardPile getDrawCards() {return drawCards;}
 
     public ArrayList<Player> getEnemy() {return Enemy;}
 
@@ -85,6 +106,11 @@ public class Player {
     }
 
     public void OnTurn(){
+        if(HandCards.isEmpty()){
+            takeCard(5);
+        }else{
+            takeCard(3);
+        }
         isOnTurn = true;
         for (int i = 0; i < HandCards.size(); i++) {
             //需要GUI同学的画图
