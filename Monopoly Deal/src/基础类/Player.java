@@ -4,7 +4,7 @@ import java.util.ArrayList;
 
 public class Player {
     private ArrayList<Card> HandCards;
-    private ArrayList<Card> PropertyCards;
+    private ArrayList<PropertiesCards> PropertyCards;
     private ArrayList<Card> BankCards;
     private boolean isOnTurn;
     private DrawPileAndDiscardPile drawCards;
@@ -76,7 +76,7 @@ public class Player {
 
     public ArrayList<Card> getHandCards() {return HandCards;}
 
-    public ArrayList<Card> getPropertyCards() {return PropertyCards;}
+    public ArrayList<PropertiesCards> getPropertyCards() {return PropertyCards;}
 
     public ArrayList<Card> getBankCards() {return BankCards;}
 
