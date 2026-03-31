@@ -138,6 +138,9 @@ public class Game {
             if(brownCount==4){
                 winCount++;
             }
+            if(blackCount==4){
+                winCount++;
+            }
             if(winCount >= 3){
                 return true;
             }
