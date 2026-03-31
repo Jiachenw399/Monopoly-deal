@@ -31,7 +31,7 @@ public class MainMenu {
         gc.setTextBaseline(VPos.CENTER);
         gc.setFont(new Font("Comic Sans MS", 48));
         gc.setFill(Color.ORANGE);
-        gc.fillText("Welcome to Frogger", Game.SCREEN_WIDTH / 2, Game.SCREEN_HEIGHT / 15);
+        gc.fillText("Welcome to Monopoly Deal!!💰", Game.SCREEN_WIDTH / 2, Game.SCREEN_HEIGHT / 15);
         gc.setFont(new Font("Comic Sans MS", 34));
         gc.fillText("To play a game press N", Game.SCREEN_WIDTH / 2, Game.SCREEN_HEIGHT / 4.3);
         gc.fillText("To see the controls press A", Game.SCREEN_WIDTH / 2, 2 * Game.SCREEN_HEIGHT / 4.3);
