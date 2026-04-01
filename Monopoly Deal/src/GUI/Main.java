@@ -10,6 +10,6 @@ public class Main {
         Game g = new Game();
         MoneyCards c = new MoneyCards(5);
         g.getPlayers().getFirst().getBankCards().add(c);
-        g.getPlayers().get(1).takeMoney(3,g.getPlayers());
+        g.getPlayers().get(1).takeMoney(3,g.getPlayers().get(0));//GUI
     }
 }

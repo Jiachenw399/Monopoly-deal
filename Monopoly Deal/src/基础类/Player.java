@@ -9,6 +9,11 @@ public class Player {
     private ArrayList<PropertiesCards> PropertyCards;
     private ArrayList<Card> BankCards;
     private boolean isOnTurn;
+    private DrawPileAndDiscardPile drawCardsAndDiscardPile;
+    private int UseCardTimes;
+    private ArrayList<Player> Enemy;
+    static int bestSum = Integer.MAX_VALUE;
+    static List<Integer> best = new ArrayList<>();
 
     public void setHandCards(ArrayList<Card> handCards) {
         HandCards = handCards;
@@ -46,11 +51,7 @@ public class Player {
         Player.best = best;
     }
 
-    private DrawPileAndDiscardPile drawCardsAndDiscardPile;
-    private int UseCardTimes;
-    private ArrayList<Player> Enemy;
-    static int bestSum = Integer.MAX_VALUE;
-    static List<Integer> best = new ArrayList<>();
+
 
     public Player(DrawPileAndDiscardPile drawCardsAndDiscardPile) {
         Enemy = new ArrayList<>();
@@ -121,11 +122,7 @@ public class Player {
         dfs(nums, target, i + 1, sum, temp);
     }
 
-    public void takeMoney(int number,ArrayList<Player> players) {
-        for (int i = 0; i < players.size(); i++) {
-            takeMoney(number,players.get(i));
-        }
-    }//问题很大
+
 
     private void putMoneyCard(Card card) {
         if(card.getClass().equals(PropertiesCards.class)){
@@ -150,10 +147,14 @@ public class Player {
                 takeCard(2);
                 break;
             case BIRTHDAY:
-                takeMoney(2,Enemy);
+                for(Player player : Enemy){
+                    if(player!=this){takeMoney(2,player);}
+                }
                 break;
             case DEBT_COLLECTOR:
-                //takeMoney(5,);
+                if(!Enemy.isEmpty()){
+                    takeMoney(5,Enemy.get(0));//要GUI选
+                }
         }
     }//对应规则C 行动卡
 
@@ -167,12 +168,15 @@ public class Player {
 
     public ArrayList<Player> getEnemy() {return Enemy;}
 
+    /*
     private boolean checkIfWin(ArrayList<Card> cards) {
         for (int i = 0; i < PropertyCards.size(); i++) {
             return true;
         }
         return false;
     }//判断游戏胜利 每个玩家每一个行动 触发检查胜利
+
+     */
 
     public boolean isOnTurn() {
         return isOnTurn;
@@ -189,6 +193,8 @@ public class Player {
     public void setUseCardTimes(int useCardTimes) {
         UseCardTimes = useCardTimes;
     }
+
+
 
     public void OnTurn() {
         // 抽牌阶段
