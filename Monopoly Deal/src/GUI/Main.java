@@ -8,12 +8,8 @@ import 逻辑类.Game;
 public class Main {
     static void main() {
         Game g = new Game();
-        int a = 0;
-        for (int i = 0; i < g.getDrawCards().getDrawPile().size(); i++) {
-            if(g.getDrawCards().getDrawPile().get(i).getClass().equals(ActionCards.class)) {
-                a+=1;
-            }
-        }
-        System.out.println(a);
+        MoneyCards c = new MoneyCards(5);
+        g.getPlayers().getFirst().getBankCards().add(c);
+        g.getPlayers().get(1).takeMoney(3,g.getPlayers());
     }
 }

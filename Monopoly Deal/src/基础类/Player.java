@@ -1,6 +1,7 @@
 package 基础类;
 
 import java.util.ArrayList;
+import java.util.List;
 
 
 public class Player {
@@ -8,36 +9,116 @@ public class Player {
     private ArrayList<PropertiesCards> PropertyCards;
     private ArrayList<Card> BankCards;
     private boolean isOnTurn;
-    private DrawPileAndDiscardPile drawCards;
+
+    public void setHandCards(ArrayList<Card> handCards) {
+        HandCards = handCards;
+    }
+
+    public void setPropertyCards(ArrayList<PropertiesCards> propertyCards) {
+        PropertyCards = propertyCards;
+    }
+
+    public void setBankCards(ArrayList<Card> bankCards) {
+        BankCards = bankCards;
+    }
+
+    public void setDrawCardsAndDiscardPile(DrawPileAndDiscardPile drawCardsAndDiscardPile) {
+        this.drawCardsAndDiscardPile = drawCardsAndDiscardPile;
+    }
+
+    public void setEnemy(ArrayList<Player> enemy) {
+        Enemy = enemy;
+    }
+
+    public static int getBestSum() {
+        return bestSum;
+    }
+
+    public static void setBestSum(int bestSum) {
+        Player.bestSum = bestSum;
+    }
+
+    public static List<Integer> getBest() {
+        return best;
+    }
+
+    public static void setBest(List<Integer> best) {
+        Player.best = best;
+    }
+
+    private DrawPileAndDiscardPile drawCardsAndDiscardPile;
     private int UseCardTimes;
     private ArrayList<Player> Enemy;
+    static int bestSum = Integer.MAX_VALUE;
+    static List<Integer> best = new ArrayList<>();
 
-    public Player(DrawPileAndDiscardPile drawCards) {
+    public Player(DrawPileAndDiscardPile drawCardsAndDiscardPile) {
         Enemy = new ArrayList<>();
         HandCards = new ArrayList<>();
         PropertyCards = new ArrayList<>();
         BankCards = new ArrayList<>();
         this.isOnTurn = false;
-        this.drawCards = drawCards;
+        this.drawCardsAndDiscardPile = drawCardsAndDiscardPile;
         this.UseCardTimes = 0;
     }//创建玩家时 创建各种列表 手上的 地产 钱
 
     public void takeCard(int number) {
         for (int i = 0; i < number; i++) {
-            if (drawCards.getDrawPile().isEmpty()) {
-                drawCards.update();
+            if (drawCardsAndDiscardPile.getDrawPile().isEmpty()) {
+                drawCardsAndDiscardPile.getDrawPile().addAll(drawCardsAndDiscardPile.getDiscardPile());
                 i-=1;
                 continue;
             }
-            drawCards.getDrawPile().removeFirst();
-            HandCards.add(drawCards.getDrawPile().getFirst());
+            drawCardsAndDiscardPile.getDrawPile().removeFirst();
+            HandCards.add(drawCardsAndDiscardPile.getDrawPile().getFirst());
         }
     }//抓牌 抓几张 参数写几 牌不够了 带洗牌功能
 
     public void takeMoney(int number,Player player) {
-        for (int i = 0; i < player.getBankCards().size(); i++) {
-            //想办法实现不找零也不补齐
+        ArrayList<Card> cards = player.getBankCards();
+        int totalMoney = 0;
+        int [] eachMoney = new int[cards.size()];
+        for (int i = 0; i < cards.size(); i++) {
+            totalMoney += cards.get(i).getValue();
+            eachMoney[i] = cards.get(i).getValue();
         }
+        if (totalMoney <= number) {
+            BankCards.addAll(player.getBankCards());
+            player.getBankCards().clear();
+        }else{
+            //
+        }
+    }
+
+    public static List<Integer> find(int[] nums, int target) {
+        bestSum = Integer.MAX_VALUE;
+        best = new ArrayList<>();
+
+        dfs(nums, target, 0, 0, new ArrayList<>());
+
+        return best;
+    }
+
+    static void dfs(int[] nums, int target, int i, int sum, List<Integer> temp) {
+        // 超过目标
+        if (sum > target) {
+            if (sum < bestSum) {
+                bestSum = sum;
+                best = new ArrayList<>(temp);
+            }
+            return;
+        }
+
+        // 遍历结束
+        if (i == nums.length) return;
+
+        // 选当前数
+        temp.add(nums[i]);
+        dfs(nums, target, i + 1, sum + nums[i], temp);
+
+        // 不选当前数
+        temp.remove(temp.size() - 1);
+        dfs(nums, target, i + 1, sum, temp);
     }
 
     public void takeMoney(int number,ArrayList<Player> players) {
@@ -63,7 +144,7 @@ public class Player {
 
     private void putActionCard(ActionCards card) {
         HandCards.remove(card);
-        drawCards.getDiscardPile().add(card);
+        drawCardsAndDiscardPile.getDiscardPile().add(card);
         switch (card.getActionCardType()) {
             case PASS_GO:
                 takeCard(2);
@@ -82,7 +163,7 @@ public class Player {
 
     public ArrayList<Card> getBankCards() {return BankCards;}
 
-    public DrawPileAndDiscardPile getDrawCards() {return drawCards;}
+    public DrawPileAndDiscardPile getDrawCardsAndDiscardPile() {return drawCardsAndDiscardPile;}
 
     public ArrayList<Player> getEnemy() {return Enemy;}
 
@@ -151,7 +232,7 @@ public class Player {
             // TODO: GUI选择要弃的牌
             // Card discard = ...;
             // HandCards.remove(discard);
-            // drawCards.getDiscardPile().add(discard);
+            // drawCardsAndDiscardPile.getDiscardPile().add(discard);
         }
 
         isOnTurn = false;
