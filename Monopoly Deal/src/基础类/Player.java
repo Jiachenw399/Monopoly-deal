@@ -29,6 +29,7 @@ public class Player {
                 i-=1;
                 continue;
             }
+            drawCards.getDrawPile().removeFirst();
             HandCards.add(drawCards.getDrawPile().getFirst());
         }
     }//抓牌 抓几张 参数写几 牌不够了 带洗牌功能
@@ -43,7 +44,7 @@ public class Player {
         for (int i = 0; i < players.size(); i++) {
             takeMoney(number,players.get(i));
         }
-    }
+    }//问题很大
 
     private void putMoneyCard(Card card) {
         if(card.getClass().equals(PropertiesCards.class)){
