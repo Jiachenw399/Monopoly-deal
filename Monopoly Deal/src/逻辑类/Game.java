@@ -1,12 +1,9 @@
 package 逻辑类;
 
-import 基础类.Card;
-import 基础类.DrawPileAndDiscardPile;
-import 基础类.Player;
-import 基础类.PropertiesCards;
-
+import 基础类.*;
 
 import java.util.ArrayList;
+
 
 public class Game {
     private ArrayList<Player> players;
@@ -63,90 +60,71 @@ public class Game {
         return false;
     }//判断游戏胜利 每个玩家每一个行动 触发检查胜利
 
-    private boolean reachWinCondition(Player player){
-        int winCount = 0;
-        int darkBlueCount = 0;
-        int brownCount = 0;
-        int lightGreenCount = 0;
-        int orangeCount = 0;
-        int pinkCount = 0;
-        int yellowCount = 0;
-        int darkGreenCount = 0;
-        int lightBlueCount = 0;
-        int redCount = 0;
-        int blackCount = 0;
-        for(PropertiesCards card : player.getPropertyCards()){
-            switch (card.getType()){
-                case DARK_BLUE:
-                    darkBlueCount++;
-                    break;
-                case BROWN:
-                    brownCount++;
-                    break;
-                case LIGHT_GREEN:
-                    lightGreenCount++;
-                    break;
-                case ORANGE:
-                    orangeCount++;
-                    break;
-                case PINK:
-                    pinkCount++;
-                    break;
-                case YELLOW:
-                    yellowCount++;
-                    break;
-                case DARK_GREEN:
-                    darkGreenCount++;
-                    break;
-                case LIGHT_BLUE:
-                    lightBlueCount++;
-                    break;
-                case RED:
-                    redCount++;
-                    break;
-                case BLACK:
-                    blackCount++;
-                    break;
-            }
-            if(darkBlueCount==2){
-                winCount++;
-            }
-            if(brownCount==2){
-                winCount++;
-            }
-            if(lightGreenCount==2){
-                winCount++;
-            }
-            if(orangeCount==3){
-                winCount++;
-            }
-            if(pinkCount==3){
-                winCount++;
-            }
-            if(yellowCount==3){
-                winCount++;
-            }
-            if(darkGreenCount==3){
-                winCount++;
-            }
-            if(lightBlueCount==3){
-                winCount++;
-            }
-            if(redCount==3){
-                winCount++;
-            }
-            if(brownCount==4){
-                winCount++;
-            }
-            if(blackCount==4){
-                winCount++;
-            }
-            if(winCount >= 3){
-                return true;
-            }
-            }
+    /**
+     * 检查指定玩家是否达到获胜条件
+     * 根据Monopoly Deal规则：第一个收集到 3 套完整不同颜色地产组的玩家获胜
+     * 已考虑万能牌（Wild Cards）可动态分配到任意颜色补足套组
+     *
+     * @param player 需要检查的玩家
+     * @return true 如果该玩家已获胜，否则 false
+     */
+    private boolean reachWinCondition(Player player) {
+        ArrayList<PropertiesCards> properties = player.getPropertyCards();
+
+        if (properties == null || properties.isEmpty()) {
             return false;
         }
+
+        // 1. 按基础颜色统计固定颜色卡牌数量
+        java.util.Map<PropertiesCardsType, Integer> colorCount = new java.util.HashMap<>();
+        int wildCardCount = 0;  // 万能牌总数（可分配到任意颜色）
+
+        for (PropertiesCards card : properties) {
+            PropertiesCardsType type = card.getType();
+            if (isWildCard(type)) {  // 判断是否为万能牌
+                wildCardCount++;
+            } else {
+                // 只统计基础颜色（非万能）
+                colorCount.put(type, colorCount.getOrDefault(type, 0) + 1);
+            }
+        }
+
+        // 2. 计算已完成的完整套组数量（使用万能牌补足）
+        int completedSets = 0;
+
+        // 遍历所有可能的颜色，检查是否能形成完整套组
+        for (PropertiesCardsType color : PropertiesCardsType.values()) {
+            if (isWildCard(color)) {
+                continue;  // 跳过万能牌类型本身
+            }
+
+            int required = color.getColorValue();  // 从枚举获取所需张数（例如深蓝2、黑色4等）
+            int current = colorCount.getOrDefault(color, 0);
+
+            // 使用万能牌补足差额（每张万能牌只能用于一个套组）
+            int needed = required - current;
+            if (needed > 0 && wildCardCount >= needed) {
+                current += needed;
+                wildCardCount -= needed;  // 万能牌已被消耗，不能重复使用
+            }
+
+            // 如果达到或超过所需张数，则视为完成一套完整套组
+            if (current >= required) {
+                completedSets++;
+            }
+        }
+
+        // 获胜条件：至少3套完整且不同颜色的套组
+        return completedSets >= 3;
+    }
+
+    /**
+     * 辅助方法：判断是否为万能牌类型
+     */
+    private boolean isWildCard(PropertiesCardsType type) {
+        return type == PropertiesCardsType.WILD_CARDS_WITH_MULTIPLE_COLOR ||
+                type.name().startsWith("WILD_CARDS_WITH_");
+    }
 
 
     private void addPlayer() {//有bug
@@ -195,4 +173,6 @@ public class Game {
     public static double getScreenHeight() {return SCREEN_HEIGHT;}
 
     public static void setScreenHeight(double screenHeight) {SCREEN_HEIGHT = screenHeight;}
+
+
 }
