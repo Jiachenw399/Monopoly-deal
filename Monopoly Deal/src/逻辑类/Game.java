@@ -1,6 +1,5 @@
 package 逻辑类;
 
-import 基础类.Card;
 import 基础类.DrawPileAndDiscardPile;
 import 基础类.Player;
 import 基础类.PropertiesCards;
@@ -149,7 +148,7 @@ public class Game {
         }
 
 
-    private void addPlayer() {//有bug
+    private void addPlayer() {
         for (int i = 0; i < 4; i++) {
             Player p = new Player(drawCards);
             players.add(p);
