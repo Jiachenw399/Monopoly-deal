@@ -41,6 +41,11 @@ public class Game {
         }else{
             currentPlayer.takeCard(2);
         }
+        currentPlayer.OnTurn();
+        if (checkIfWin()) {
+            isWin = true;
+            // TODO: 显示胜利界面
+        }
     }
 
     public Player getCurrentPlayer(){
