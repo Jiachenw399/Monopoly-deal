@@ -155,8 +155,54 @@ public class Player {
                 if(!Enemy.isEmpty()){
                     takeMoney(5,Enemy.get(0));//要GUI选
                 }
-        }
+            case SLY_DEAL:
+                if(!Enemy.isEmpty()){
+                    Player target = Enemy.get(2);//GUI来选
+                    ArrayList<PropertiesCards> stealTarget = getStealTarget(target);
+                    if(!stealTarget.isEmpty()){
+                        PropertiesCards propToSteal = stealTarget.get(0);//GUI选要steal的
+                        steal(target, propToSteal);
+                    }
+
+                }        }
     }//对应规则C 行动卡
+
+    public ArrayList<PropertiesCards> getStealTarget(Player p){
+        ArrayList<PropertiesCards> canBeSteal = new ArrayList<>();
+        ArrayList<PropertiesCards> allProperties = p.getPropertyCards();
+        java.util.Map<PropertiesCardsType, Integer> colorCount = new java.util.HashMap<>();
+        for (PropertiesCards prop : allProperties) {
+            PropertiesCardsType type = prop.getType();
+            if (!isWildCard(type)) {
+                colorCount.put(type, colorCount.getOrDefault(type, 0) + 1);
+            }
+        }
+        for(PropertiesCards prop : allProperties){
+            PropertiesCardsType type = prop.getType();
+            //这个地方逻辑不太对，没想好咋改
+            if(isWildCard(type)){
+                canBeSteal.add(prop);
+                continue;
+            }
+            int totalNum = type.getColorValue();
+            int currentNum = colorCount.get(type);
+            //如果目前地产卡没集齐，可以偷
+            if(currentNum != totalNum){
+                canBeSteal.add(prop);
+            }
+
+        }
+        return canBeSteal;
+    }
+    private void steal(Player p, PropertiesCards prop){
+        p.getPropertyCards().remove(prop);
+        this.PropertyCards.add(prop);
+    }
+
+    private boolean isWildCard(PropertiesCardsType type) {
+        return type == PropertiesCardsType.WILD_CARDS_WITH_MULTIPLE_COLOR ||
+                type.name().startsWith("WILD_CARDS_WITH_");
+    }
 
     public ArrayList<Card> getHandCards() {return HandCards;}
 
