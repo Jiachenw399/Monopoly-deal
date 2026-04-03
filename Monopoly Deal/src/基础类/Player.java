@@ -9,7 +9,7 @@ import java.util.List;
 
 public class Player {
     private ArrayList<Card> HandCards;
-    private ArrayList<PropertiesCards> PropertyCards;
+    private ArrayList<PropertiesCards> PropertyCards;  //这个是不是可以都算在手牌里，player储存三种列表：银行，未出手牌，已出手牌
     private ArrayList<Card> BankCards;
     private boolean isOnTurn;
     private DrawPileAndDiscardPile drawCardsAndDiscardPile;
