@@ -1,7 +1,10 @@
 package 基础类;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
 import java.util.List;
+
 
 
 public class Player {
@@ -87,51 +90,15 @@ public class Player {
             BankCards.addAll(player.getBankCards());
             player.getBankCards().clear();
         }else{
-            //
-        }
-    }
-
-    public static List<Integer> find(int[] nums, int target) {
-        bestSum = Integer.MAX_VALUE;
-        best = new ArrayList<>();
-
-        dfs(nums, target, 0, 0, new ArrayList<>());
-
-        return best;
-    }
-
-    static void dfs(int[] nums, int target, int i, int sum, List<Integer> temp) {
-        // 超过目标
-        if (sum > target) {
-            if (sum < bestSum) {
-                bestSum = sum;
-                best = new ArrayList<>(temp);
+            //让玩家选 需要listener
+            int selectTotalMoney = 0;
+            if(selectTotalMoney<number){
+                //重新选
+            }else{
+                //移动所有
             }
-            return;
         }
-
-        // 遍历结束
-        if (i == nums.length) return;
-
-        // 选当前数
-        temp.add(nums[i]);
-        dfs(nums, target, i + 1, sum + nums[i], temp);
-
-        // 不选当前数
-        temp.remove(temp.size() - 1);
-        dfs(nums, target, i + 1, sum, temp);
     }
-
-
-
-    private void putMoneyCard(Card card) {
-        if(card.getClass().equals(PropertiesCards.class)){
-            return;
-        }
-        HandCards.remove(card);
-        BankCards.add(card);
-        UseCardTimes++;
-    }//用钱 对应规则A
 
     private void putPropertyCard(PropertiesCards card) {
         HandCards.remove(card);
@@ -148,7 +115,7 @@ public class Player {
                 break;
             case BIRTHDAY:
                 for(Player player : Enemy){
-                    if(player!=this){takeMoney(2,player);}
+                    if(player!=this){takeMoney(2,player);}//这个takeMoney 有问题 不知道咋弄了
                 }
                 break;
             case DEBT_COLLECTOR:
@@ -243,15 +210,15 @@ public class Player {
 
 
     public void OnTurn() {
+        isOnTurn = true;
+        UseCardTimes = 0;  // 重置本回合打牌计数
+
         // 抽牌阶段
         if (HandCards.isEmpty()) {
             takeCard(5);
         } else {
             takeCard(2);
         }
-
-        isOnTurn = true;
-        UseCardTimes = 0;  // 重置本回合打牌计数
 
         // 打牌阶段：最多打出3张卡（依赖GUI Listener选择）
         while (UseCardTimes < 3 && !HandCards.isEmpty()) {
