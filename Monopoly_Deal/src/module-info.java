@@ -1,8 +1,0 @@
-/**
- * 
- */
-/**
- * 
- */
-module Monopoly_Deal {
-}
