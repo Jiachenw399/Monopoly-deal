@@ -1,6 +1,6 @@
 package GUI;
 
-import java.awt.*;
+
 
 
 import javafx.geometry.VPos;
@@ -9,7 +9,7 @@ import javafx.scene.canvas.GraphicsContext;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
-import 逻辑类.Game;
+import logic.Game;
 
 public class MainMenu {
     private Canvas canvas;

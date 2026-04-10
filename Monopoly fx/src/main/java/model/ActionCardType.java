@@ -1,4 +1,4 @@
-package 基础类;
+package model;
 
 public enum ActionCardType {
     //做逻辑的同学 务必仔细看各个卡牌规则

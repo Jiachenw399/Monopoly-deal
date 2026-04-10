@@ -1,6 +1,6 @@
-package 逻辑类;
+package logic;
 
-import 基础类.*;
+import model.*;
 
 import java.util.ArrayList;
 

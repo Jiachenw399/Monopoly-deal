@@ -3,11 +3,9 @@ package GUI;
 import javafx.application.Application;
 import javafx.stage.Stage;
 
-import 基础类.ActionCards;
-import 基础类.MoneyCards;
-import 基础类.PropertiesCards;
+import model.MoneyCards;
 
-import 逻辑类.Game;
+import logic.Game;
 
 public class Main extends Application {
 

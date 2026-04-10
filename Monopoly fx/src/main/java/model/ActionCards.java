@@ -1,4 +1,4 @@
-package 基础类;
+package model;
 
 public class ActionCards extends Card {
     private ActionCardType actionCardType;

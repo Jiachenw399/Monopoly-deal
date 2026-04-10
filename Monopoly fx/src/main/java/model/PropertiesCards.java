@@ -1,4 +1,4 @@
-package 基础类;
+package model;
 
 public class PropertiesCards extends Card {
     private final PropertiesCardsType type;

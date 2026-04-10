@@ -1,4 +1,4 @@
-package 基础类;
+package model;
 
 public enum PropertiesCardsType {
     //深蓝 2 橘色 3 黑色4 红3 深绿3 棕色2 粉色3 浅蓝3 浅绿2 黄3
