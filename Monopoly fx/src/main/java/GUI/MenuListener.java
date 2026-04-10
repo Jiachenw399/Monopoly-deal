@@ -29,8 +29,7 @@ public class MenuListener {
             }
 
             if (code == KeyCode.X) {
-                System.out.println("按下了 X");
-                // TODO: 退出
+                System.exit(0);
             }
         });
     }

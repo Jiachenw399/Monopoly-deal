@@ -92,37 +92,6 @@ public class Player {
         }
     }
 
-    public static List<Integer> find(int[] nums, int target) {
-        bestSum = Integer.MAX_VALUE;
-        best = new ArrayList<>();
-
-        dfs(nums, target, 0, 0, new ArrayList<>());
-
-        return best;
-    }
-
-    static void dfs(int[] nums, int target, int i, int sum, List<Integer> temp) {
-        // 超过目标
-        if (sum > target) {
-            if (sum < bestSum) {
-                bestSum = sum;
-                best = new ArrayList<>(temp);
-            }
-            return;
-        }
-
-        // 遍历结束
-        if (i == nums.length) return;
-
-        // 选当前数
-        temp.add(nums[i]);
-        dfs(nums, target, i + 1, sum + nums[i], temp);
-
-        // 不选当前数
-        temp.remove(temp.size() - 1);
-        dfs(nums, target, i + 1, sum, temp);
-    }
-
     private void putMoneyCard(Card card) {
         if(card.getClass().equals(PropertiesCards.class)){
             return;
