@@ -5,6 +5,7 @@ import java.util.List;
 
 
 public class Player {
+
     private ArrayList<Card> HandCards;
     private ArrayList<PropertiesCards> PropertyCards;
     private ArrayList<Card> BankCards;
