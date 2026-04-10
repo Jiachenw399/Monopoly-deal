@@ -1,25 +1,33 @@
 package GUI;
 
+import javafx.animation.AnimationTimer;
 import javafx.application.Application;
+import javafx.scene.Scene;
 import javafx.stage.Stage;
-
-import model.MoneyCards;
-
-import logic.Game;
 
 public class Main extends Application {
 
     @Override
     public void start(Stage primaryStage) {
-        // 这里是你 JavaFX 窗口初始化的地方
-        // 在这里，你可以创建界面元素并展示它
-        Game g = new Game();
-        MoneyCards c = new MoneyCards(5);
-        g.getPlayers().getFirst().getBankCards().add(c);
-        g.getPlayers().get(1).takeMoney(3, g.getPlayers().get(0));
+
+        MainMenu menu = new MainMenu();
+
+        Scene scene = new Scene(new javafx.scene.Group(menu.getCanvas()));
+
+        primaryStage.setScene(scene);
+        primaryStage.setTitle("Monopoly Deal");
+        primaryStage.show();
+
+        // 👇 游戏循环
+        new AnimationTimer() {
+            @Override
+            public void handle(long now) {
+                menu.paint(); // 一直画
+            }
+        }.start();
     }
 
     public static void main(String[] args) {
-        launch(args); // JavaFX 启动
+        launch(args);
     }
 }

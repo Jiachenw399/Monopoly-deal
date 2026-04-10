@@ -1,8 +1,5 @@
 package GUI;
 
-
-
-
 import javafx.geometry.VPos;
 import javafx.scene.canvas.Canvas;
 import javafx.scene.canvas.GraphicsContext;
