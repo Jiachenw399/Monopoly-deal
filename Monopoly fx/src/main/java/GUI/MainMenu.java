@@ -11,6 +11,7 @@ import logic.Game;
 public class MainMenu {
     private Canvas canvas;
 
+
     public MainMenu() {
         canvas = new Canvas(Game.SCREEN_WIDTH,Game.SCREEN_HEIGHT);
     }
@@ -30,9 +31,8 @@ public class MainMenu {
         gc.setFill(Color.ORANGE);
         gc.fillText("Welcome to Monopoly Deal!!💰", Game.SCREEN_WIDTH / 2, Game.SCREEN_HEIGHT / 15);
         gc.setFont(new Font("Comic Sans MS", 34));
-        gc.fillText("To play a game press N", Game.SCREEN_WIDTH / 2, Game.SCREEN_HEIGHT / 4.3);
-        gc.fillText("To see the controls press A", Game.SCREEN_WIDTH / 2, 2 * Game.SCREEN_HEIGHT / 4.3);
-        gc.fillText("To see the High scores press H", Game.SCREEN_WIDTH / 2, 3 * Game.SCREEN_HEIGHT / 4.3);
-        gc.fillText("To exit press X", Game.SCREEN_WIDTH / 2, 4 * Game.SCREEN_HEIGHT / 4.3);
+        gc.fillText("To start a new game press A", Game.SCREEN_WIDTH / 2, 1.5 * Game.SCREEN_HEIGHT / 4.3);
+        gc.fillText("To see the game rules press N", Game.SCREEN_WIDTH / 2, 2.3*Game.SCREEN_HEIGHT / 4.3);
+        gc.fillText("To exit press X", Game.SCREEN_WIDTH / 2,  3.1 * Game.SCREEN_HEIGHT / 4.3);
     }
 }

@@ -90,43 +90,55 @@ public class DrawPileAndDiscardPile {
         }
     }
 
-    private void addPropertiesCards(){
-        PropertiesCardsType [] types = new PropertiesCardsType[]{
+    private void addPropertiesCards() {
+        int[] amount = {
+                2, // DARK_BLUE
+                3, // ORANGE
+                4, // BLACK
+                3, // RED
+                3, // DARK_GREEN
+                2, // BROWN
+                3, // PINK
+                3, // LIGHT_BLUE
+                2, // LIGHT_GREEN
+                3, // YELLOW
+
+                2, // WILD_PINK_ORANGE
+                2, // WILD_RED_YELLOW
+                1, // WILD_BLACK_DARK_GREEN
+                1, // WILD_BLACK_LIGHT_BLUE
+                1, // WILD_BLACK_LIGHT_GREEN
+                1, // WILD_LIGHT_BLUE_BROWN
+                1, // WILD_DARK_BLUE_DARK_GREEN
+                2  // WILD_ALL
+        };
+
+        PropertiesCardsType[] types = {
                 PropertiesCardsType.DARK_BLUE,
-                PropertiesCardsType.BROWN,
-                PropertiesCardsType.LIGHT_GREEN,
-                PropertiesCardsType.WILD_CARDS_WITH_MULTIPLE_COLOR,
-                PropertiesCardsType.WILD_CARDS_WITH_RED_AND_YELLOW,
-                PropertiesCardsType.WILD_CARDS_WITH_PINK_AND_ORANGE,
-
                 PropertiesCardsType.ORANGE,
-                PropertiesCardsType.PINK,
-                PropertiesCardsType.YELLOW,
-                PropertiesCardsType.DARK_GREEN,
-                PropertiesCardsType.LIGHT_BLUE,
-                PropertiesCardsType.RED,
-
                 PropertiesCardsType.BLACK,
+                PropertiesCardsType.RED,
+                PropertiesCardsType.DARK_GREEN,
+                PropertiesCardsType.BROWN,
+                PropertiesCardsType.PINK,
+                PropertiesCardsType.LIGHT_BLUE,
+                PropertiesCardsType.LIGHT_GREEN,
+                PropertiesCardsType.YELLOW,
 
-                PropertiesCardsType.WILD_CARDS_WITH_BLACK_AND_DARK_GREEN,
-                PropertiesCardsType.WILD_CARDS_WITH_BLACK_AND_LIGHT_BLUE,
-                PropertiesCardsType.WILD_CARDS_WITH_BLACK_AND_LIGHT_GREEN,
-                PropertiesCardsType.WILD_CARDS_WITH_LIGHT_BLUE_AND_BROWN,
-                PropertiesCardsType.WILD_CARDS_WITH_DARK_BLUE_AND_DARK_GREEN,
+                PropertiesCardsType.WILD_PINK_ORANGE,
+                PropertiesCardsType.WILD_RED_YELLOW,
+                PropertiesCardsType.WILD_BLACK_DARK_GREEN,
+                PropertiesCardsType.WILD_BLACK_LIGHT_BLUE,
+                PropertiesCardsType.WILD_BLACK_LIGHT_GREEN,
+                PropertiesCardsType.WILD_LIGHT_BLUE_BROWN,
+                PropertiesCardsType.WILD_DARK_BLUE_DARK_GREEN,
+                PropertiesCardsType.WILD_ALL
+        };
 
-        };
-        int [] amount = new int[]{
-                2,2,2,2,2,2,
-                3,3,3,3,3,3,
-                4,
-                1,1,1,1,1
-        };
         for (int i = 0; i < types.length; i++) {
             for (int j = 0; j < amount[i]; j++) {
-                PropertiesCards ps = new PropertiesCards(types[i]);
-                DrawPile.add(ps);
+                DrawPile.add(new PropertiesCards(types[i]));
             }
         }
-        //深蓝 2 橘色 3 黑色4 红3 深绿3 棕色2 粉色3 浅蓝3 浅绿2 黄3
     }
 }

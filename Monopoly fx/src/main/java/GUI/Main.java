@@ -4,6 +4,7 @@ import javafx.animation.AnimationTimer;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
+import logic.Game;
 
 public class Main extends Application {
 
@@ -11,20 +12,25 @@ public class Main extends Application {
     public void start(Stage primaryStage) {
 
         MainMenu menu = new MainMenu();
+        Game game = new Game();
 
         Scene scene = new Scene(new javafx.scene.Group(menu.getCanvas()));
+
+        MenuListener menuListener = new MenuListener(menu, game);
+        menuListener.addListener(scene);
 
         primaryStage.setScene(scene);
         primaryStage.setTitle("Monopoly Deal");
         primaryStage.show();
 
-        // 👇 游戏循环
         new AnimationTimer() {
             @Override
             public void handle(long now) {
-                menu.paint(); // 一直画
+                menu.paint();
             }
         }.start();
+
+        menu.getCanvas().requestFocus();
     }
 
     public static void main(String[] args) {

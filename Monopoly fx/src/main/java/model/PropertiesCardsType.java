@@ -1,39 +1,52 @@
 package model;
 
+import java.util.Set;
+
 public enum PropertiesCardsType {
-    //深蓝 2 橘色 3 黑色4 红3 深绿3 棕色2 粉色3 浅蓝3 浅绿2 黄3
-    DARK_BLUE(4),
-    ORANGE(2),
-    BLACK(2),
-    RED(3),
-    DARK_GREEN(4),
-    BROWN(1),
-    PINK(2),
-    LIGHT_BLUE(1),
-    LIGHT_GREEN(2),
-    YELLOW(3),
-    WILD_CARDS_WITH_PINK_AND_ORANGE(2),
-    WILD_CARDS_WITH_RED_AND_YELLOW(3),
-    WILD_CARDS_WITH_BLACK_AND_DARK_GREEN(4),
-    WILD_CARDS_WITH_BLACK_AND_LIGHT_BLUE(4),
-    WILD_CARDS_WITH_BLACK_AND_LIGHT_GREEN(2),
-    WILD_CARDS_WITH_LIGHT_BLUE_AND_BROWN(1),
-    WILD_CARDS_WITH_DARK_BLUE_AND_DARK_GREEN(4),//两种颜色之一的万能牌 随时可以变颜色
-    //红黄2 橙粉2 浅蓝棕1 黑深绿1 黑浅蓝1 黑浅绿1 深蓝深绿1
 
-    WILD_CARDS_WITH_MULTIPLE_COLOR(0);//2
-    ;
-    private int ColorValue;
+    // ===== 普通颜色牌 =====
+    DARK_BLUE(4, Set.of(PropertyColor.DARK_BLUE)),
+    ORANGE(2, Set.of(PropertyColor.ORANGE)),
+    BLACK(2, Set.of(PropertyColor.BLACK)),
+    RED(3, Set.of(PropertyColor.RED)),
+    DARK_GREEN(4, Set.of(PropertyColor.DARK_GREEN)),
+    BROWN(1, Set.of(PropertyColor.BROWN)),
+    PINK(2, Set.of(PropertyColor.PINK)),
+    LIGHT_BLUE(1, Set.of(PropertyColor.LIGHT_BLUE)),
+    LIGHT_GREEN(2, Set.of(PropertyColor.LIGHT_GREEN)),
+    YELLOW(3, Set.of(PropertyColor.YELLOW)),
 
-    PropertiesCardsType(int value) {
-        this.ColorValue = value;
+    // ===== 万能牌 =====
+    WILD_PINK_ORANGE(2, Set.of(PropertyColor.PINK, PropertyColor.ORANGE)),
+    WILD_RED_YELLOW(3, Set.of(PropertyColor.RED, PropertyColor.YELLOW)),
+    WILD_BLACK_DARK_GREEN(4, Set.of(PropertyColor.BLACK, PropertyColor.DARK_GREEN)),
+    WILD_BLACK_LIGHT_BLUE(4, Set.of(PropertyColor.BLACK, PropertyColor.LIGHT_BLUE)),
+    WILD_BLACK_LIGHT_GREEN(2, Set.of(PropertyColor.BLACK, PropertyColor.LIGHT_GREEN)),
+    WILD_LIGHT_BLUE_BROWN(1, Set.of(PropertyColor.LIGHT_BLUE, PropertyColor.BROWN)),
+    WILD_DARK_BLUE_DARK_GREEN(4, Set.of(PropertyColor.DARK_BLUE, PropertyColor.DARK_GREEN)),
+
+    // 🌈 全能万能牌
+    WILD_ALL(0, Set.of(PropertyColor.values()));
+
+    private final int value;
+    private final Set<PropertyColor> colors;
+
+    PropertiesCardsType(int value, Set<PropertyColor> colors) {
+        this.value = value;
+        this.colors = colors;
     }
 
-    public int getColorValue() {
-        return ColorValue;
+    public int getValue() {
+        return value;
     }
 
-    public void setColorValue(int colorValue) {
-        ColorValue = colorValue;
+    public Set<PropertyColor> getColors() {
+        return colors;
     }
+
+    // 是否可以当某种颜色
+    public boolean canBe(PropertyColor color) {
+        return colors.contains(color);
+    }
+
 }
