@@ -8,10 +8,12 @@ public class MenuListener {
 
     private MainMenu menu;
     private Game game;
+    private GameScreen  gameScreen;
 
-    public MenuListener(MainMenu menu, Game game) {
+    public MenuListener(MainMenu menu, Game game, GameScreen gameScreen) {
         this.menu = menu;
         this.game = game;
+        this.gameScreen = gameScreen;
     }
 
     public void addListener(Scene scene) {
@@ -24,7 +26,8 @@ public class MenuListener {
             }
 
             if (code == KeyCode.A) {
-                System.out.println("按下了 A");
+                menu.setShow(false);
+                gameScreen.setShow(true);
                 // TODO: 开始新游戏
             }
 

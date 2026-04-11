@@ -13,10 +13,11 @@ public class Main extends Application {
 
         MainMenu menu = new MainMenu();
         Game game = new Game();
+        GameScreen gameScreen = new GameScreen(game);
 
         Scene scene = new Scene(new javafx.scene.Group(menu.getCanvas()));
 
-        MenuListener menuListener = new MenuListener(menu, game);
+        MenuListener menuListener = new MenuListener(menu, game, gameScreen);
         menuListener.addListener(scene);
 
         primaryStage.setScene(scene);
@@ -26,7 +27,17 @@ public class Main extends Application {
         new AnimationTimer() {
             @Override
             public void handle(long now) {
-                menu.paint();
+                if(menu.isShow()){
+                    menu.paint();
+                }else{
+                    menu.clear();
+                }
+
+                if(gameScreen.isShow()){
+                    gameScreen.drawBackground();
+                }else{
+                    gameScreen.clear();
+                }
             }
         }.start();
 

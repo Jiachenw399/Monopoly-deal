@@ -11,9 +11,19 @@ import logic.Game;
 public class MainMenu {
     private Canvas canvas;
 
+    public boolean isShow() {
+        return isShow;
+    }
+
+    public void setShow(boolean show) {
+        isShow = show;
+    }
+
+    private boolean isShow;
 
     public MainMenu() {
         canvas = new Canvas(Game.SCREEN_WIDTH,Game.SCREEN_HEIGHT);
+        this.isShow = true;
     }
 
     public Canvas getCanvas() {
@@ -34,5 +44,10 @@ public class MainMenu {
         gc.fillText("To start a new game press A", Game.SCREEN_WIDTH / 2, 1.5 * Game.SCREEN_HEIGHT / 4.3);
         gc.fillText("To see the game rules press N", Game.SCREEN_WIDTH / 2, 2.3*Game.SCREEN_HEIGHT / 4.3);
         gc.fillText("To exit press X", Game.SCREEN_WIDTH / 2,  3.1 * Game.SCREEN_HEIGHT / 4.3);
+    }
+
+    public void clear() {
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
     }
 }

@@ -1,7 +1,10 @@
 package model;
 
+import logic.Game;
+
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 
 public class Player {
@@ -136,7 +139,8 @@ public class Player {
 //                        steal(target, propToSteal);
 //                    }
 
-                }        }
+                }
+        }
     }//对应规则C 行动卡
 
 //    public ArrayList<PropertiesCards> getStealTarget(Player p){
@@ -187,15 +191,27 @@ public class Player {
 
     public ArrayList<Player> getEnemy() {return Enemy;}
 
-    /*
-    private boolean checkIfWin(ArrayList<Card> cards) {
-        for (int i = 0; i < PropertyCards.size(); i++) {
-            return true;
-        }
-        return false;
-    }//判断游戏胜利 每个玩家每一个行动 触发检查胜利
 
-     */
+    public boolean checkIfWin() {
+        if (PropertyCards == null || PropertyCards.isEmpty()) {
+            return false;
+        }
+        Map <PropertyColor, Integer> colorCount = new java.util.HashMap<>();
+        for (int i = 0; i < PropertyCards.size(); i++) {
+            colorCount.put(PropertyCards.get(i).getCurrentColor(), colorCount.getOrDefault(PropertyCards.get(i).getCurrentColor(), 0) + 1);
+        }
+        int completedSets = 0;
+        for (PropertyColor color : colorCount.keySet()) {
+            int count = colorCount.get(color);
+            // 关键：判断是否达到该颜色需要的数量
+            if (count >= color.getAmountToCompleteSet()) {
+                completedSets++;
+            }
+        }
+        // Monopoly Deal规则：3套获胜
+        return completedSets >= 3;
+    }//这个方法 大概没问题了
+
 
     public boolean isOnTurn() {
         return isOnTurn;
@@ -212,8 +228,6 @@ public class Player {
     public void setUseCardTimes(int useCardTimes) {
         UseCardTimes = useCardTimes;
     }
-
-
 
     public void OnTurn() {
         // 抽牌阶段
