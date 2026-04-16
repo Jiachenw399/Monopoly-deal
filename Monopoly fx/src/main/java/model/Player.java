@@ -95,7 +95,7 @@ public class Player {
         }
     }
 
-    private void putMoneyCard(Card card) {
+    public void putMoneyCard(Card card) {
         if(card.getClass().equals(PropertiesCards.class)){
             return;
         }
@@ -104,7 +104,7 @@ public class Player {
         UseCardTimes++;
     }//用钱 对应规则A
 
-    private void putPropertyCard(PropertiesCards card) {
+    public void putPropertyCard(PropertiesCards card) {
         HandCards.remove(card);
         PropertyCards.add(card);
         UseCardTimes++;
@@ -114,7 +114,7 @@ public class Player {
 
     }
 
-    private void putActionCard(ActionCards card) {
+    public void putActionCard(ActionCards card) {
         HandCards.remove(card);
         drawCardsAndDiscardPile.getDiscardPile().add(card);
         switch (card.getActionCardType()) {

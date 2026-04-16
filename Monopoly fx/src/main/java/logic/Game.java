@@ -19,8 +19,15 @@ public class Game {
         addPlayer();
         isWin = false;
     }
-
+//start the game
     public void startGame(){
+        currentPlayerIndex = 0;
+        Player currentPlayer = players.get(currentPlayerIndex);
+        currentPlayer.setOnTurn(true);
+    }
+
+    //take card
+    public void startTurn(){
         Player currentPlayer = players.get(currentPlayerIndex);
         currentPlayer.setOnTurn(true);
         if(currentPlayer.getHandCards().isEmpty()){
@@ -30,18 +37,48 @@ public class Game {
         }
     }
 
+    public void endTurn(){
+        Player currentPlayer = players.get(currentPlayerIndex);
+        if(currentPlayer.checkIfWin()){
+            isWin = true;
+            return;
+        }
+        currentPlayer.setOnTurn(false);
+        currentPlayer.setUseCardTimes(0);
+        currentPlayerIndex = (currentPlayerIndex+1)%players.size();
+        startTurn();
+    }
+
+    public void playCard(Card card){
+        Player currentPlayer = getCurrentPlayer();
+        if(!currentPlayer.isOnTurn()){
+            return;
+        }
+
+        if(currentPlayer.getUseCardTimes() >= 3){
+            return;
+        }
+
+        if(card instanceof MoneyCards){
+            currentPlayer.putMoneyCard(card);
+        }else if(card instanceof PropertiesCards){
+            currentPlayer.putPropertyCard((PropertiesCards) card);
+        }else if(card instanceof ActionCards){
+            currentPlayer.putActionCard((ActionCards) card);
+        }
+
+        if(currentPlayer.checkIfWin()){
+            isWin = true;
+        }
+    }
+
     //turn to the next player
     public void nextPlayer(){
         Player currentPlayer = players.get(currentPlayerIndex);
         currentPlayer.setOnTurn(false);
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
+        startTurn();
         currentPlayer = players.get(currentPlayerIndex);
-        currentPlayer.setOnTurn(true);
-        if(currentPlayer.getHandCards().isEmpty()){
-            currentPlayer.takeCard(5);
-        }else{
-            currentPlayer.takeCard(2);
-        }
         currentPlayer.OnTurn();
         if (currentPlayer.checkIfWin()) {
             isWin = true;
