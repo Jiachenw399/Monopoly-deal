@@ -19,7 +19,8 @@ public class Game {
         addPlayer();
         isWin = false;
     }
-//start the game
+
+    //start the game
     public void startGame(){
         currentPlayerIndex = 0;
         Player currentPlayer = players.get(currentPlayerIndex);
@@ -41,6 +42,7 @@ public class Game {
         Player currentPlayer = players.get(currentPlayerIndex);
         if(currentPlayer.checkIfWin()){
             isWin = true;
+            //TODO 显示胜利
             return;
         }
         currentPlayer.setOnTurn(false);
@@ -72,20 +74,6 @@ public class Game {
         }
     }
 
-    //turn to the next player
-    public void nextPlayer(){
-        Player currentPlayer = players.get(currentPlayerIndex);
-        currentPlayer.setOnTurn(false);
-        currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
-        startTurn();
-        currentPlayer = players.get(currentPlayerIndex);
-        currentPlayer.OnTurn();
-        if (currentPlayer.checkIfWin()) {
-            isWin = true;
-            // TODO: 显示胜利界面
-        }
-    }
-
     public Player getCurrentPlayer(){
         return players.get(currentPlayerIndex);
     }
@@ -112,6 +100,8 @@ public class Game {
             players.get(i).takeCard(5);
         }
     }
+
+
 
     public ArrayList<Player> getPlayers() {
         return players;

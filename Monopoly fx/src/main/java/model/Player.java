@@ -1,7 +1,5 @@
 package model;
 
-import logic.Game;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -94,6 +92,16 @@ public class Player {
             //
         }
     }
+
+    public void putCard(Card card) {
+        if(card instanceof MoneyCards){
+            putMoneyCard((MoneyCards) card);
+        }else if(card instanceof PropertiesCards){
+            putPropertyCard((PropertiesCards) card);
+        }else if(card instanceof ActionCards){
+            putActionCard((ActionCards) card);
+        }
+    }//合并一下出牌功能
 
     public void putMoneyCard(Card card) {
         if(card.getClass().equals(PropertiesCards.class)){
@@ -276,5 +284,29 @@ public class Player {
 
         isOnTurn = false;
         UseCardTimes = 0;
+    }
+
+    public void printAllCardsOfHands(){
+        for (Card handCard : HandCards) {
+            if (handCard instanceof MoneyCards) {
+                System.out.println("Money Card: " + handCard.getValue()+ "M$");
+            }else if(handCard instanceof PropertiesCards){
+                System.out.println("Properties Card: " + handCard.getValue()+ "M$"+((PropertiesCards) handCard).getType());
+            }else if(handCard instanceof ActionCards){
+                System.out.println("Action Card: "+ handCard.getValue()+((ActionCards) handCard).getActionCardType());
+            }
+        }
+    }
+
+    public void printAllCardsOfEnemy(){
+        for (Player player : Enemy) {
+            for (int i1 = 0; i1 < player.getBankCards().size(); i1++) {
+                System.out.println("Money Card: " + player.getBankCards().get(i1).getValue()+ "M$");
+            }
+            for (int i1 = 0; i1 < player.getPropertyCards().size(); i1++) {
+                PropertiesCards propertyCards = (PropertiesCards) player.getPropertyCards().get(i1);
+                System.out.println("Properties Card: " + propertyCards.getValue()+ "M$"+propertyCards.getType());
+            }
+        }
     }
 }
