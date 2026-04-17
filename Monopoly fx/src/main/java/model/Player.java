@@ -1,6 +1,6 @@
 package model;
 
-import logic.Game;
+import logic.GameRules;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -209,7 +209,7 @@ public class Player {
             }
         }
         // Monopoly Deal规则：3套获胜
-        return completedSets >= 3;
+        return completedSets >= GameRules.WINNING_PROPERTY_SET_COUNT;
     }//这个方法 大概没问题了
 
 
@@ -227,54 +227,5 @@ public class Player {
 
     public void setUseCardTimes(int useCardTimes) {
         UseCardTimes = useCardTimes;
-    }
-
-    public void OnTurn() {
-        // 抽牌阶段
-        if (HandCards.isEmpty()) {
-            takeCard(5);
-        } else {
-            takeCard(2);
-        }
-
-        isOnTurn = true;
-        UseCardTimes = 0;  // 重置本回合打牌计数
-
-        // 打牌阶段：最多打出3张卡（依赖GUI Listener选择）
-        while (UseCardTimes < 3 && !HandCards.isEmpty()) {
-            // TODO: GUI通过GameListener传入玩家选择的卡牌
-            // Card selectedCard = listener.getSelectedCard();
-
-        /*
-        if (selectedCard != null) {
-            if (selectedCard instanceof MoneyCards) {
-                putMoneyCard(selectedCard);
-            } else if (selectedCard instanceof PropertiesCards) {
-                putPropertyCard((PropertiesCards) selectedCard);
-            } else if (selectedCard instanceof ActionCards) {
-                putActionCard((ActionCards) selectedCard);
-            }
-
-            // 打牌后立即检查胜利
-            if (checkIfWin(PropertyCards)) {
-                // 可在此通知Game结束游戏
-                break;
-            }
-        } else {
-            break;  // 玩家选择结束回合
-        }
-        */
-        }
-
-        // 回合结束：手牌超过7张需弃牌（规则要求）
-        while (HandCards.size() > 7) {
-            // TODO: GUI选择要弃的牌
-            // Card discard = ...;
-            // HandCards.remove(discard);
-            // drawCardsAndDiscardPile.getDiscardPile().add(discard);
-        }
-
-        isOnTurn = false;
-        UseCardTimes = 0;
     }
 }

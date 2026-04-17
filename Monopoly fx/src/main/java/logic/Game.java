@@ -22,19 +22,12 @@ public class Game {
 //start the game
     public void startGame(){
         currentPlayerIndex = 0;
-        Player currentPlayer = players.get(currentPlayerIndex);
-        currentPlayer.setOnTurn(true);
+        prepareTurn(players.get(currentPlayerIndex));
     }
 
     //take card
     public void startTurn(){
-        Player currentPlayer = players.get(currentPlayerIndex);
-        currentPlayer.setOnTurn(true);
-        if(currentPlayer.getHandCards().isEmpty()){
-            currentPlayer.takeCard(5);
-        }else{
-            currentPlayer.takeCard(2);
-        }
+        prepareTurn(players.get(currentPlayerIndex));
     }
 
     public void endTurn(){
@@ -43,8 +36,7 @@ public class Game {
             isWin = true;
             return;
         }
-        currentPlayer.setOnTurn(false);
-        currentPlayer.setUseCardTimes(0);
+        finishTurn(currentPlayer);
         currentPlayerIndex = (currentPlayerIndex+1)%players.size();
         startTurn();
     }
@@ -55,7 +47,7 @@ public class Game {
             return;
         }
 
-        if(currentPlayer.getUseCardTimes() >= 3){
+        if(currentPlayer.getUseCardTimes() >= GameRules.MAX_PLAYED_CARDS_PER_TURN){
             return;
         }
 
@@ -75,15 +67,29 @@ public class Game {
     //turn to the next player
     public void nextPlayer(){
         Player currentPlayer = players.get(currentPlayerIndex);
-        currentPlayer.setOnTurn(false);
+        finishTurn(currentPlayer);
         currentPlayerIndex = (currentPlayerIndex + 1) % players.size();
         startTurn();
         currentPlayer = players.get(currentPlayerIndex);
-        currentPlayer.OnTurn();
         if (currentPlayer.checkIfWin()) {
             isWin = true;
             // TODO: 显示胜利界面
         }
+    }
+
+    private void prepareTurn(Player player) {
+        player.setOnTurn(true);
+        player.setUseCardTimes(0);
+        if (player.getHandCards().isEmpty()) {
+            player.takeCard(GameRules.INITIAL_DRAW_COUNT);
+        } else {
+            player.takeCard(GameRules.TURN_DRAW_COUNT);
+        }
+    }
+
+    private void finishTurn(Player player) {
+        player.setOnTurn(false);
+        player.setUseCardTimes(0);
     }
 
     public Player getCurrentPlayer(){
@@ -95,7 +101,7 @@ public class Game {
     }
 
     private void addPlayer() {//有bug
-        for (int i = 0; i < 4; i++) {
+        for (int i = 0; i < GameRules.PLAYER_COUNT; i++) {
             Player p = new Player(drawCards);
             players.add(p);
         }//加入四个玩家
@@ -109,7 +115,7 @@ public class Game {
         }//加入后 给每个玩家加上另外的三个敌人
 
         for (int i = 0; i < players.size(); i++) {
-            players.get(i).takeCard(5);
+            players.get(i).takeCard(GameRules.INITIAL_DRAW_COUNT);
         }
     }
 
