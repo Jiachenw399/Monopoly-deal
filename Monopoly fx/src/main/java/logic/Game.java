@@ -12,7 +12,7 @@ public class Game {
     public static double SCREEN_WIDTH = 1035;
     public static double SCREEN_HEIGHT = 625;
     private int currentPlayerIndex;
-    private boolean isDiscard = false;
+    public boolean isDiscard = false;
 
     public Game(){
         players = new ArrayList<>();
@@ -151,4 +151,8 @@ public class Game {
     public static double getScreenHeight() {return SCREEN_HEIGHT;}
 
     public static void setScreenHeight(double screenHeight) {SCREEN_HEIGHT = screenHeight;}
+
+    public boolean isDiscard() {
+        return isDiscard;
+    }
 }
