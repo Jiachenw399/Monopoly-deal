@@ -72,8 +72,7 @@ public class Player {
                 i-=1;
                 continue;
             }
-            drawCardsAndDiscardPile.getDrawPile().removeFirst();
-            HandCards.add(drawCardsAndDiscardPile.getDrawPile().getFirst());
+            HandCards.add(drawCardsAndDiscardPile.getDrawPile().remove(0));
         }
     }//抓牌 抓几张 参数写几 牌不够了 带洗牌功能
 
