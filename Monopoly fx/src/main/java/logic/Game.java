@@ -3,6 +3,7 @@ package logic;
 import model.*;
 
 import java.util.ArrayList;
+import java.util.Scanner;
 
 
 public class Game {
@@ -23,13 +24,30 @@ public class Game {
     //start the game
     public void startGame(){
         currentPlayerIndex = 0;
-        Player currentPlayer = players.get(currentPlayerIndex);
+        Player currentPlayer = getCurrentPlayer();
         currentPlayer.setOnTurn(true);
     }
 
+    public void mainLoop(){
+        while(!isWin){
+            Player currentPlayer = getCurrentPlayer();
+            startTurn(currentPlayer);
+            while(currentPlayer.getUseCardTimes()<3){
+                int CardIndex = currentPlayer.chooseHandCard()-1;
+                if(CardIndex == -1){
+                    break;
+                }else if(CardIndex<0||CardIndex>currentPlayer.getHandCards().size()-1){
+                    System.out.println("Please enter a valid card number");
+                }else{
+                    currentPlayer.putCard(currentPlayer.getHandCards().get(CardIndex));
+                }
+            }
+            endTurn(currentPlayer);
+        }
+    }
+
     //take card
-    public void startTurn(){
-        Player currentPlayer = players.get(currentPlayerIndex);
+    public void startTurn(Player currentPlayer){
         currentPlayer.setOnTurn(true);
         if(currentPlayer.getHandCards().isEmpty()){
             currentPlayer.takeCard(5);
@@ -38,8 +56,7 @@ public class Game {
         }
     }
 
-    public void endTurn(){
-        Player currentPlayer = players.get(currentPlayerIndex);
+    public void endTurn(Player currentPlayer){
         if(currentPlayer.checkIfWin()){
             isWin = true;
             //TODO 显示胜利
@@ -48,7 +65,7 @@ public class Game {
         currentPlayer.setOnTurn(false);
         currentPlayer.setUseCardTimes(0);
         currentPlayerIndex = (currentPlayerIndex+1)%players.size();
-        startTurn();
+        startTurn(getCurrentPlayer());
     }
 
     public void playCard(Card card){

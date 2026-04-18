@@ -1,8 +1,6 @@
 package model;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 
 public class Player {
@@ -89,18 +87,20 @@ public class Player {
             BankCards.addAll(player.getBankCards());
             player.getBankCards().clear();
         }else{
-            //
+            //这玩意有bug
         }
     }
 
     public void putCard(Card card) {
-        if(card instanceof MoneyCards){
-            putMoneyCard((MoneyCards) card);
-        }else if(card instanceof PropertiesCards){
-            putPropertyCard((PropertiesCards) card);
-        }else if(card instanceof ActionCards){
-            putActionCard((ActionCards) card);
+        switch (card) {
+            case MoneyCards moneyCards -> putMoneyCard(moneyCards);
+            case PropertiesCards propertiesCards -> putPropertyCard(propertiesCards);
+            case ActionCards actionCards -> putActionCard(actionCards);
+            case null, default -> {
+                return;
+            }
         }
+        UseCardTimes++;
     }//合并一下出牌功能
 
     public void putMoneyCard(Card card) {
@@ -109,18 +109,34 @@ public class Player {
         }
         HandCards.remove(card);
         BankCards.add(card);
-        UseCardTimes++;
     }//用钱 对应规则A
+
+    public PropertyColor choosePropertyColorForWildCards(PropertiesCards card) {
+        ArrayList<PropertyColor> colorsCanBeUsed = card.getType().getColors();
+        int i = 1;
+        for (PropertyColor color : colorsCanBeUsed) {
+            System.out.println(i+color.toString());
+            i+=1;
+        }
+        Scanner input = new Scanner(System.in);
+        int choice = input.nextInt();
+        System.out.println("What is your property color?");
+        if(choice<=0 || choice >=colorsCanBeUsed.size()){
+            System.out.println("Invalid choice.");
+            return choosePropertyColorForWildCards(card);
+        }else{
+            card.setCurrentColor(colorsCanBeUsed.get(choice-1));
+            return colorsCanBeUsed.get(choice-1);
+        }
+    }
 
     public void putPropertyCard(PropertiesCards card) {
         HandCards.remove(card);
+        if(card.getType().name().startsWith("WILD")){
+            card.setCurrentColor(choosePropertyColorForWildCards(card));
+        }
         PropertyCards.add(card);
-        UseCardTimes++;
     }//放地产 对应规则B
-
-    private void getTarget(){
-
-    }
 
     public void putActionCard(ActionCards card) {
         HandCards.remove(card);
@@ -287,14 +303,17 @@ public class Player {
     }
 
     public void printAllCardsOfHands(){
+        int i = 1;
+        System.out.println("To end a turn, please enter 0");
         for (Card handCard : HandCards) {
             if (handCard instanceof MoneyCards) {
-                System.out.println("Money Card: " + handCard.getValue()+ "M$");
+                System.out.println(i+". Money Card: " + handCard.getValue()+ "M$ ");
             }else if(handCard instanceof PropertiesCards){
-                System.out.println("Properties Card: " + handCard.getValue()+ "M$"+((PropertiesCards) handCard).getType());
+                System.out.println(i+". Properties Card: " + handCard.getValue()+ "M$ "+((PropertiesCards) handCard).getType());
             }else if(handCard instanceof ActionCards){
-                System.out.println("Action Card: "+ handCard.getValue()+((ActionCards) handCard).getActionCardType());
+                System.out.println(i+". Action Card: "+ handCard.getValue()+ "M$ "+((ActionCards) handCard).getActionCardType());
             }
+            i+=1;
         }
     }
 
@@ -308,5 +327,12 @@ public class Player {
                 System.out.println("Properties Card: " + propertyCards.getValue()+ "M$"+propertyCards.getType());
             }
         }
+    }
+
+    public int chooseHandCard(){
+        Scanner sc  = new Scanner(System.in);
+        printAllCardsOfHands();
+        System.out.println("Please enter the number of a card to use");
+        return sc.nextInt();
     }
 }

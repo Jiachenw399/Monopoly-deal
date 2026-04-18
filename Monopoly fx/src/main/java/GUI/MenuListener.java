@@ -32,17 +32,7 @@ public class MenuListener {
                 menu.setShow(false);
                 gameScreen.setShow(true);
                 game.startGame();
-                while (!game.isWin()){
-                    game.startTurn();
-                    //game.getCurrentPlayer().printAllCardsOfHands();
-                    Scanner sc  = new Scanner(System.in);
-                    System.out.println("Please enter the number of a card to use");
-                    int cardNumber = sc.nextInt();
-                    Card card = game.getCurrentPlayer().getHandCards().get(cardNumber-1);
-                    game.getCurrentPlayer().putCard(card);
-                    game.getCurrentPlayer().printAllCardsOfEnemy();
-                    game.endTurn();
-                }
+                game.mainLoop();
                 // TODO: 开始新游戏
             }
 

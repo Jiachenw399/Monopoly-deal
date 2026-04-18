@@ -24,6 +24,14 @@ public class PropertiesCards extends Card {
         return currentColor;
     }//用于记录地产卡现在的颜色 后续 胜利判断 偷牌 全都使用这个来进行判断
 
+    public void setCurrentColor(PropertyColor currentColor) {
+        this.currentColor = currentColor;
+    }
+
+    public void setType(PropertiesCardsType type) {
+        this.type = type;
+    }
+
     public int getValue() {
         return type.getValue(); // ✅ 直接从枚举拿
     }
