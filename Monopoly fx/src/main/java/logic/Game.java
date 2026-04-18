@@ -13,6 +13,7 @@ public class Game {
     public static double SCREEN_WIDTH = 1035;
     public static double SCREEN_HEIGHT = 625;
     private int currentPlayerIndex;
+    public boolean isDiscard = false;
 
     public Game(){
         players = new ArrayList<>();
@@ -66,6 +67,26 @@ public class Game {
         currentPlayer.setUseCardTimes(0);
         currentPlayerIndex = (currentPlayerIndex+1)%players.size();
         startTurn(getCurrentPlayer());
+    }
+
+    public void startDiscard(){
+        Player currentPlayer = getCurrentPlayer();
+        if(currentPlayer.getHandCards().size()>7){
+            isDiscard = true;
+            //GUI进入弃牌阶段调用discard
+        }
+    }
+
+    public void discard(Card card){
+        Player currentPlayer = getCurrentPlayer();
+        if(!isDiscard){
+            return;
+        }
+        currentPlayer.getHandCards().remove(card);
+        drawCards.getDiscardPile().add(card);
+        if(currentPlayer.getHandCards().size() <= 7){
+            isDiscard = false;
+        }
     }
 
     public void playCard(Card card){
@@ -147,4 +168,8 @@ public class Game {
     public static double getScreenHeight() {return SCREEN_HEIGHT;}
 
     public static void setScreenHeight(double screenHeight) {SCREEN_HEIGHT = screenHeight;}
+
+    public boolean isDiscard() {
+        return isDiscard;
+    }
 }
