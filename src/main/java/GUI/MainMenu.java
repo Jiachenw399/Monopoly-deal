@@ -1,53 +1,72 @@
 package GUI;
 
-import javafx.geometry.VPos;
-import javafx.scene.canvas.Canvas;
-import javafx.scene.canvas.GraphicsContext;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Parent;
+import javafx.scene.control.Button;
+import javafx.scene.control.Label;
+import javafx.scene.layout.Background;
+import javafx.scene.layout.BackgroundFill;
+import javafx.scene.layout.CornerRadii;
+import javafx.scene.layout.StackPane;
+import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
-import javafx.scene.text.TextAlignment;
-import logic.Game;
+import javafx.scene.text.FontWeight;
 
+/**
+ * Animated-free, scene-graph based main menu. Keeps the file name for
+ * backwards compatibility with the original Canvas-based menu.
+ */
 public class MainMenu {
-    private Canvas canvas;
 
-    public boolean isShow() {
-        return isShow;
+    private final Parent root;
+
+    public MainMenu(MonopolyApp app) {
+        Label title = new Label("Monopoly Deal");
+        title.setFont(Font.font("Segoe UI", FontWeight.EXTRA_BOLD, 56));
+        title.setTextFill(Color.web("#f1c40f"));
+
+        Label subtitle = new Label("A fast card game of property, money and rent.");
+        subtitle.setFont(Font.font("Segoe UI", FontWeight.NORMAL, 18));
+        subtitle.setTextFill(Color.web("#ecf0f1"));
+
+        Button newGameBtn = primaryButton("New Game");
+        newGameBtn.setOnAction(e -> app.startNewGame());
+
+        Button rulesBtn = primaryButton("Rules");
+        rulesBtn.setOnAction(e -> app.showRules());
+
+        Button exitBtn = primaryButton("Exit");
+        exitBtn.setOnAction(e -> System.exit(0));
+
+        VBox menu = new VBox(18, title, subtitle, newGameBtn, rulesBtn, exitBtn);
+        menu.setAlignment(Pos.CENTER);
+        menu.setPadding(new Insets(40));
+
+        StackPane container = new StackPane(menu);
+        container.setBackground(new Background(new BackgroundFill(
+                Color.web("#0f1e3d"), CornerRadii.EMPTY, Insets.EMPTY)));
+        this.root = container;
     }
 
-    public void setShow(boolean show) {
-        isShow = show;
+    public Parent getRoot() {
+        return root;
     }
 
-    private boolean isShow;
-
-    public MainMenu() {
-        canvas = new Canvas(Game.SCREEN_WIDTH,Game.SCREEN_HEIGHT);
-        this.isShow = true;
-    }
-
-    public Canvas getCanvas() {
-        return canvas;
-    }
-
-    public void paint() {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.clearRect(0, 0,Game.SCREEN_WIDTH,Game.SCREEN_HEIGHT);
-        gc.setFill(Color.DARKBLUE);
-        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.setFont(new Font("Comic Sans MS", 48));
-        gc.setFill(Color.ORANGE);
-        gc.fillText("Welcome to Monopoly Deal!!💰", Game.SCREEN_WIDTH / 2, Game.SCREEN_HEIGHT / 15);
-        gc.setFont(new Font("Comic Sans MS", 34));
-        gc.fillText("To start a new game press A", Game.SCREEN_WIDTH / 2, 1.5 * Game.SCREEN_HEIGHT / 4.3);
-        gc.fillText("To see the game rules press N", Game.SCREEN_WIDTH / 2, 2.3*Game.SCREEN_HEIGHT / 4.3);
-        gc.fillText("To exit press X", Game.SCREEN_WIDTH / 2,  3.1 * Game.SCREEN_HEIGHT / 4.3);
-    }
-
-    public void clear() {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+    static Button primaryButton(String text) {
+        Button b = new Button(text);
+        b.setPrefWidth(220);
+        b.setPrefHeight(46);
+        b.setFont(Font.font("Segoe UI", FontWeight.BOLD, 18));
+        b.setStyle("-fx-background-color: #e67e22; -fx-text-fill: white; "
+                + "-fx-background-radius: 8; -fx-cursor: hand;");
+        b.setOnMouseEntered(e -> b.setStyle(
+                "-fx-background-color: #ca6f1e; -fx-text-fill: white; "
+                        + "-fx-background-radius: 8; -fx-cursor: hand;"));
+        b.setOnMouseExited(e -> b.setStyle(
+                "-fx-background-color: #e67e22; -fx-text-fill: white; "
+                        + "-fx-background-radius: 8; -fx-cursor: hand;"));
+        return b;
     }
 }
