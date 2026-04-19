@@ -1,18 +1,41 @@
 package model;
 
+/**
+ * Rent card. Targets one opponent and demands rent in the card's color.
+ *
+ * Preconditions enforced by {@code Game}:
+ *  - the attacker must own at least one property of this color
+ *  - the targeted opponent must also own at least one property of this color
+ *
+ * Rent amount = attacker.propertyCount(color) * {@link #RENT_PER_PROPERTY}.
+ *
+ * The class is still named {@code ActionCards} to avoid breaking the file
+ * layout of the original project, but functionally it represents a rent card.
+ */
 public class ActionCards extends Card {
-    private ActionCardType actionCardType;
+    public static final int RENT_PER_PROPERTY = 2;
 
-    public ActionCards(ActionCardType actionCardType) {
-        this.actionCardType = actionCardType;
-        value = actionCardType.getTypeValue();
+    private final PropertyColor color;
+
+    public ActionCards(PropertyColor color) {
+        if (color == null) {
+            throw new IllegalArgumentException("rent color must not be null");
+        }
+        this.color = color;
+        this.value = 1;
     }
 
-    public ActionCardType getActionCardType() {
-        return actionCardType;
+    public PropertyColor getColor() {
+        return color;
     }
 
-    public void setActionCardType(ActionCardType actionCardType) {
-        this.actionCardType = actionCardType;
+    @Override
+    public String getDisplay() {
+        return "Rent " + color.getDisplayName();
+    }
+
+    @Override
+    public String getCategory() {
+        return "RENT";
     }
 }

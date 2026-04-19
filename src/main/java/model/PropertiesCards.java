@@ -1,42 +1,36 @@
 package model;
 
+/**
+ * A property card in a single color. Multi-color wild cards were removed to
+ * match the simplified rules: every property belongs to exactly one color.
+ * Face value is a flat 2M, which is what the card is worth when it ends up
+ * in a bank pile as payment (properties themselves are not used to pay in
+ * the simplified rules, this value only matters for deck totals / display).
+ */
 public class PropertiesCards extends Card {
-    private PropertyColor currentColor;
-    private PropertiesCardsType type;
+    public static final int FACE_VALUE = 2;
 
-    public PropertiesCards(PropertiesCardsType type) {
-        this.type = type;
+    private final PropertyColor color;
 
-        // 如果是普通牌（只有一种颜色）
-        if (type.getColors().size() == 1) {
-            this.currentColor = type.getColors().iterator().next();
-        } else {
-            // 万能牌先不指定颜色
-            this.currentColor = null;
+    public PropertiesCards(PropertyColor color) {
+        if (color == null) {
+            throw new IllegalArgumentException("color must not be null");
         }
+        this.color = color;
+        this.value = FACE_VALUE;
     }
 
-    public PropertiesCardsType getType() {
-        return type;
+    public PropertyColor getColor() {
+        return color;
     }
 
-    public PropertyColor getCurrentColor() {
-        return currentColor;
-    }//用于记录地产卡现在的颜色 后续 胜利判断 偷牌 全都使用这个来进行判断
-
-    public void setCurrentColor(PropertyColor currentColor) {
-        this.currentColor = currentColor;
+    @Override
+    public String getDisplay() {
+        return color.getDisplayName();
     }
 
-    public void setType(PropertiesCardsType type) {
-        this.type = type;
-    }
-
-    public int getValue() {
-        return type.getValue(); // ✅ 直接从枚举拿
-    }
-
-    public boolean isWildCard() {
-        return type.getColors().size() > 1;
+    @Override
+    public String getCategory() {
+        return "PROPERTY";
     }
 }
