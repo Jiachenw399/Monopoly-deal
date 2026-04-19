@@ -1,179 +1,280 @@
 package logic;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
 
 import model.ActionCards;
 import model.Card;
 import model.DrawPileAndDiscardPile;
 import model.MoneyCards;
-import model.Player;
 import model.PropertiesCards;
+import model.Player;
+import model.PropertyColor;
 
-
+/**
+ * Central state machine for a Monopoly Deal game.
+ *
+ * <p>Rules implemented (per the simplified spec):
+ * <ul>
+ *   <li>Three card categories: money (1/4/10M), property (single-colored) and rent.</li>
+ *   <li>Each player is dealt 5 cards at the start of the game.</li>
+ *   <li>On every turn the current player draws 2 cards (or 5 if hand is empty)
+ *       then may play at most one card of each category.</li>
+ *   <li>Money goes to the player's bank; properties go to the property area;
+ *       rent demands a payment from a chosen opponent in the rent card's color.
+ *       Rent is only legal if both the attacker and target own properties of
+ *       that color.</li>
+ *   <li>Rent is paid from the payer's bank using the minimum sufficient subset
+ *       (no change given; if bank total is insufficient, everything in the
+ *       bank is transferred).</li>
+ *   <li>At end of turn any hand cards above seven are returned to the bottom
+ *       of the draw pile.</li>
+ *   <li>First player to complete three full property sets wins.</li>
+ * </ul>
+ */
 public class Game {
-    private ArrayList<Player> players;
-    private DrawPileAndDiscardPile drawCards;
-    private boolean isWin;
-    public static double SCREEN_WIDTH = 1035;
-    public static double SCREEN_HEIGHT = 625;
-    private int currentPlayerIndex;
-    public boolean isDiscard = false;
 
-    public Game(){
-        players = new ArrayList<>();
-        drawCards = new DrawPileAndDiscardPile();
-        addPlayer();
-        isWin = false;
+    // --- UI sizing constants kept for backwards compatibility ---------------
+    public static final double SCREEN_WIDTH = 1100;
+    public static final double SCREEN_HEIGHT = 720;
+
+    // --- rule constants -----------------------------------------------------
+    public static final int INITIAL_HAND = 5;
+    public static final int DRAW_PER_TURN = 2;
+    public static final int DRAW_WHEN_EMPTY = 5;
+    public static final int HAND_LIMIT = 7;
+    public static final int MAX_MONEY_PER_TURN = 1;
+    public static final int MAX_PROPERTY_PER_TURN = 1;
+    public static final int MAX_RENT_PER_TURN = 1;
+    public static final int SETS_TO_WIN = 3;
+
+    private final List<Player> players;
+    private final DrawPileAndDiscardPile deck;
+    private final List<String> log = new ArrayList<>();
+
+    private int currentIndex;
+    private GamePhase phase = GamePhase.DRAW;
+    private int moneyPlays;
+    private int propertyPlays;
+    private int rentPlays;
+    private RentRequest pendingRent;
+    private Player winner;
+
+    // --- construction -------------------------------------------------------
+
+    public Game() {
+        this(Arrays.asList("Player 1", "Player 2"));
     }
 
-    //start the game
-    public void startGame(){
-        currentPlayerIndex = 0;
-        Player currentPlayer = getCurrentPlayer();
-        currentPlayer.setOnTurn(true);
+    public Game(List<String> playerNames) {
+        this(playerNames, new DrawPileAndDiscardPile());
     }
 
-    public void mainLoop(){
-        while(!isWin){
-            Player currentPlayer = getCurrentPlayer();
-            startTurn(currentPlayer);
-            while(currentPlayer.getUseCardTimes()<3){
-                int CardIndex = currentPlayer.chooseHandCard()-1;
-                if(CardIndex == -1){
-                    break;
-                }else if(CardIndex<0||CardIndex>currentPlayer.getHandCards().size()-1){
-                    System.out.println("Please enter a valid card number");
-                }else{
-                    currentPlayer.putCard(currentPlayer.getHandCards().get(CardIndex));
-                }
-            }
-            endTurn(currentPlayer);
+    public Game(List<String> playerNames, DrawPileAndDiscardPile deck) {
+        if (playerNames == null || playerNames.size() < 2) {
+            throw new IllegalArgumentException("at least two players required");
         }
+        this.deck = deck;
+        this.players = new ArrayList<>();
+        for (String n : playerNames) players.add(new Player(n));
+        for (Player p : players) p.drawFrom(deck, INITIAL_HAND);
     }
 
-    //take card
-    public void startTurn(Player currentPlayer){
-        currentPlayer.setOnTurn(true);
-        if(currentPlayer.getHandCards().isEmpty()){
-            currentPlayer.takeCard(5);
-        }else{
-            currentPlayer.takeCard(2);
+    // --- turn lifecycle -----------------------------------------------------
+
+    /** Begins the first turn. Draws for the first player. */
+    public void startGame() {
+        currentIndex = 0;
+        startTurn();
+    }
+
+    private void startTurn() {
+        Player p = currentPlayer();
+        int n = p.getHand().isEmpty() ? DRAW_WHEN_EMPTY : DRAW_PER_TURN;
+        p.drawFrom(deck, n);
+        phase = GamePhase.PLAY;
+        moneyPlays = propertyPlays = rentPlays = 0;
+        log(p.getName() + " drew " + n + " card(s)");
+    }
+
+    /** Request end of current turn. Transitions to DISCARD if hand > 7. */
+    public void endTurn() {
+        if (phase == GamePhase.AWAITING_PAYMENT) {
+            throw new IllegalStateException("resolve pending rent first");
         }
-    }
-
-    public void endTurn(Player currentPlayer){
-        if(currentPlayer.checkIfWin()){
-            isWin = true;
-            //TODO 显示胜利
+        if (phase == GamePhase.GAME_OVER) return;
+        Player p = currentPlayer();
+        if (p.getHand().size() > HAND_LIMIT) {
+            phase = GamePhase.DISCARD;
+            log(p.getName() + " must discard down to " + HAND_LIMIT + " cards");
             return;
         }
-        currentPlayer.setOnTurn(false);
-        currentPlayer.setUseCardTimes(0);
-        currentPlayerIndex = (currentPlayerIndex+1)%players.size();
-        startTurn(getCurrentPlayer());
+        advanceToNextPlayer();
     }
 
-    public void startDiscard(){
-        Player currentPlayer = getCurrentPlayer();
-        if(currentPlayer.getHandCards().size()>7){
-            isDiscard = true;
-            //GUI进入弃牌阶段调用discard
+    private void advanceToNextPlayer() {
+        currentIndex = (currentIndex + 1) % players.size();
+        startTurn();
+    }
+
+    // --- play actions -------------------------------------------------------
+
+    /** Whether the card may currently be played by the current player. */
+    public boolean canPlay(Card card) {
+        if (phase != GamePhase.PLAY) return false;
+        if (!currentPlayer().getHand().contains(card)) return false;
+        if (card instanceof MoneyCards) {
+            return moneyPlays < MAX_MONEY_PER_TURN;
+        }
+        if (card instanceof PropertiesCards) {
+            return propertyPlays < MAX_PROPERTY_PER_TURN;
+        }
+        if (card instanceof ActionCards rent) {
+            return rentPlays < MAX_RENT_PER_TURN
+                    && currentPlayer().propertyCount(rent.getColor()) > 0
+                    && !validRentTargets(rent.getColor()).isEmpty();
+        }
+        return false;
+    }
+
+    public void playMoney(MoneyCards card) {
+        requirePhase(GamePhase.PLAY);
+        if (moneyPlays >= MAX_MONEY_PER_TURN) {
+            throw new IllegalStateException("already played a money card this turn");
+        }
+        currentPlayer().playMoney(card);
+        moneyPlays++;
+        log(currentPlayer().getName() + " banked " + card.getDisplay());
+        checkWin();
+    }
+
+    public void playProperty(PropertiesCards card) {
+        requirePhase(GamePhase.PLAY);
+        if (propertyPlays >= MAX_PROPERTY_PER_TURN) {
+            throw new IllegalStateException("already played a property card this turn");
+        }
+        currentPlayer().playProperty(card);
+        propertyPlays++;
+        log(currentPlayer().getName() + " placed " + card.getDisplay() + " property");
+        checkWin();
+    }
+
+    /**
+     * Plays a rent card against {@code target}. Moves the rent card to the
+     * discard pile and transitions to AWAITING_PAYMENT.
+     */
+    public void playRent(ActionCards card, Player target) {
+        requirePhase(GamePhase.PLAY);
+        if (rentPlays >= MAX_RENT_PER_TURN) {
+            throw new IllegalStateException("already played a rent card this turn");
+        }
+        if (target == null || target == currentPlayer() || !players.contains(target)) {
+            throw new IllegalArgumentException("invalid rent target");
+        }
+        Player attacker = currentPlayer();
+        if (attacker.propertyCount(card.getColor()) == 0) {
+            throw new IllegalStateException("attacker does not own properties of "
+                    + card.getColor());
+        }
+        if (target.propertyCount(card.getColor()) == 0) {
+            throw new IllegalStateException("target does not own properties of "
+                    + card.getColor());
+        }
+        attacker.discardHandCard(card, deck);
+        int amount = attacker.propertyCount(card.getColor()) * ActionCards.RENT_PER_PROPERTY;
+        pendingRent = new RentRequest(attacker, target, card.getColor(), amount);
+        phase = GamePhase.AWAITING_PAYMENT;
+        rentPlays++;
+        log(attacker.getName() + " demands $" + amount + "M rent on "
+                + card.getColor().getDisplayName() + " from " + target.getName());
+    }
+
+    /**
+     * Settles the pending rent using the payer's minimum sufficient payment
+     * (see {@link Player#computeMinSufficientPayment(int)}). Idempotent once
+     * the phase has moved back to PLAY.
+     */
+    public void resolveRent() {
+        if (phase != GamePhase.AWAITING_PAYMENT || pendingRent == null) return;
+        List<MoneyCards> payment =
+                pendingRent.getPayer().computeMinSufficientPayment(pendingRent.getAmount());
+        int paid = payment.stream().mapToInt(MoneyCards::getValue).sum();
+        pendingRent.getPayer().pay(payment, pendingRent.getCollector());
+        log(pendingRent.getPayer().getName() + " paid $" + paid + "M (demanded $"
+                + pendingRent.getAmount() + "M)");
+        pendingRent = null;
+        phase = GamePhase.PLAY;
+        checkWin();
+    }
+
+    // --- discard phase ------------------------------------------------------
+
+    public void discardExcess(Card card) {
+        requirePhase(GamePhase.DISCARD);
+        Player p = currentPlayer();
+        p.returnHandCardToDeck(card, deck);
+        log(p.getName() + " returned a card to the deck");
+        if (p.getHand().size() <= HAND_LIMIT) {
+            advanceToNextPlayer();
         }
     }
 
-    public void discard(Card card){
-        Player currentPlayer = getCurrentPlayer();
-        if(!isDiscard){
-            return;
-        }
-        currentPlayer.getHandCards().remove(card);
-        drawCards.getDiscardPile().add(card);
-        if(currentPlayer.getHandCards().size() <= 7){
-            isDiscard = false;
-        }
-    }
+    // --- introspection used by the GUI and tests ----------------------------
 
-    public void playCard(Card card){
-        Player currentPlayer = getCurrentPlayer();
-        if(!currentPlayer.isOnTurn()){
-            return;
-        }
+    public Player currentPlayer() { return players.get(currentIndex); }
+    public int getCurrentPlayerIndex() { return currentIndex; }
+    public GamePhase getPhase() { return phase; }
+    public List<Player> getPlayers() { return Collections.unmodifiableList(players); }
+    public DrawPileAndDiscardPile getDeck() { return deck; }
+    public RentRequest getPendingRent() { return pendingRent; }
+    public Player getWinner() { return winner; }
+    public boolean isWin() { return winner != null; }
+    public List<String> getLog() { return Collections.unmodifiableList(log); }
 
-        if(currentPlayer.getUseCardTimes() >= 3){
-            return;
-        }
+    public int remainingMoneyPlays()    { return MAX_MONEY_PER_TURN - moneyPlays; }
+    public int remainingPropertyPlays() { return MAX_PROPERTY_PER_TURN - propertyPlays; }
+    public int remainingRentPlays()     { return MAX_RENT_PER_TURN - rentPlays; }
 
-        if(card instanceof MoneyCards){
-            currentPlayer.putMoneyCard(card);
-        }else if(card instanceof PropertiesCards){
-            currentPlayer.putPropertyCard((PropertiesCards) card);
-        }else if(card instanceof ActionCards){
-            currentPlayer.putActionCard((ActionCards) card);
-        }
-
-        if(currentPlayer.checkIfWin()){
-            isWin = true;
-        }
-    }
-
-    public Player getCurrentPlayer(){
-        return players.get(currentPlayerIndex);
-    }
-
-    public int getCurrentPlayerIndex() {
-        return currentPlayerIndex;
-    }
-
-    private void addPlayer() {//有bug
-        for (int i = 0; i < 4; i++) {
-            Player p = new Player(drawCards);
-            players.add(p);
-        }//加入四个玩家
-
+    /** Opponents of the current player, in seat order. */
+    public List<Player> opponents() {
+        List<Player> list = new ArrayList<>();
         for (int i = 0; i < players.size(); i++) {
-            for (int j = 0; j < players.size(); j++) {
-                if(i!=j){
-                    players.get(i).getEnemy().add(players.get(j));
-                }
-            }
-        }//加入后 给每个玩家加上另外的三个敌人
+            if (i != currentIndex) list.add(players.get(i));
+        }
+        return list;
+    }
 
-        for (int i = 0; i < players.size(); i++) {
-            players.get(i).takeCard(5);
+    /** Opponents of the current player that own at least one property of {@code color}. */
+    public List<Player> validRentTargets(PropertyColor color) {
+        List<Player> list = new ArrayList<>();
+        for (Player p : opponents()) {
+            if (p.propertyCount(color) > 0) list.add(p);
+        }
+        return list;
+    }
+
+    // --- helpers ------------------------------------------------------------
+
+    private void checkWin() {
+        for (Player p : players) {
+            if (p.completeSetCount() >= SETS_TO_WIN) {
+                winner = p;
+                phase = GamePhase.GAME_OVER;
+                log(p.getName() + " WINS with " + p.completeSetCount() + " complete sets!");
+                return;
+            }
         }
     }
 
-
-
-    public ArrayList<Player> getPlayers() {
-        return players;
+    private void requirePhase(GamePhase expected) {
+        if (phase != expected) {
+            throw new IllegalStateException("expected phase " + expected + " but was " + phase);
+        }
     }
 
-    public void setPlayers(ArrayList<Player> players) {
-        this.players = players;
-    }
-
-    public boolean isWin() {
-        return isWin;
-    }
-
-    public void setWin(boolean win) {
-        isWin = win;
-    }
-
-    public DrawPileAndDiscardPile getDrawCards() {return drawCards;}
-
-    public void setDrawCards(DrawPileAndDiscardPile drawCards) {this.drawCards = drawCards;}
-
-    public static double getScreenWidth() {return SCREEN_WIDTH;}
-
-    public static void setScreenWidth(double screenWidth) {SCREEN_WIDTH = screenWidth;}
-
-    public static double getScreenHeight() {return SCREEN_HEIGHT;}
-
-    public static void setScreenHeight(double screenHeight) {SCREEN_HEIGHT = screenHeight;}
-
-    public boolean isDiscard() {
-        return isDiscard;
+    private void log(String msg) {
+        log.add(msg);
     }
 }
