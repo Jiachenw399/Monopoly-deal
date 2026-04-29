@@ -69,9 +69,11 @@ public class Player {
     public void takeCard(int number) {
         for (int i = 0; i < number; i++) {
             if (drawCardsAndDiscardPile.getDrawPile().isEmpty()) {
-                drawCardsAndDiscardPile.getDrawPile().addAll(drawCardsAndDiscardPile.getDiscardPile());
-                i-=1;
-                continue;
+                drawCardsAndDiscardPile.shuffle();
+                if(drawCardsAndDiscardPile.getDrawPile().isEmpty()){
+                    System.out.println("It is empty, cannot shuffle");
+                    return;
+                }
             }
             HandCards.add(drawCardsAndDiscardPile.getDrawPile().remove(0));
         }
@@ -80,17 +82,42 @@ public class Player {
     public void takeMoney(int number,Player player) {
         ArrayList<Card> cards = player.getBankCards();
         int totalMoney = 0;
-        int [] eachMoney = new int[cards.size()];
-        for (int i = 0; i < cards.size(); i++) {
-            totalMoney += cards.get(i).getValue();
-            eachMoney[i] = cards.get(i).getValue();
+        for(Card card : cards){
+            totalMoney += card.getValue();
         }
+//        int [] eachMoney = new int[cards.size()];
+//        for (int i = 0; i < cards.size(); i++) {
+//            totalMoney += cards.get(i).getValue();
+//            eachMoney[i] = cards.get(i).getValue();
+//        }
         if (totalMoney <= number) {
             BankCards.addAll(player.getBankCards());
             player.getBankCards().clear();
-        }else{
-            //这玩意有bug
+            return;
         }
+        ArrayList<Card> bestCombination = new ArrayList<>();
+        int bestSum = Integer.MAX_VALUE;
+        int n = cards.size();
+        for(int mask = 1; mask < (1<<n); mask++){
+            ArrayList<Card> com = new ArrayList<>();//the current combination
+            int currentSum = 0;
+            for(int i=0; i<n; i++){
+                if ((mask & (1 << i)) != 0) {
+                    Card card = cards.get(i);
+                    com.add(card);
+                    currentSum += card.getValue();
+                }
+            }
+            if(currentSum>=number){
+                if(currentSum < bestSum){
+                    bestSum = currentSum;
+                    bestCombination = com;
+                }
+            }
+        }
+        BankCards.addAll(bestCombination);
+        cards.removeAll(bestCombination);
+        //TODO：待完善，还不能用户选择组合给牌
     }
 
     public void putCard(Card card) {
@@ -164,7 +191,6 @@ public class Player {
 //                        PropertiesCards propToSteal = stealTarget.get(0);//GUI选要steal的
 //                        steal(target, propToSteal);
 //                    }
-
                 }
         }
     }//对应规则C 行动卡
