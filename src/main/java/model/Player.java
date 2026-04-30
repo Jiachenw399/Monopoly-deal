@@ -134,11 +134,11 @@ public class Player {
 
     public void putPropertyCard(PropertiesCards card) {
         HandCards.remove(card);
-        if(card.getType().name().startsWith("WILD")){
-            card.setCurrentColor(choosePropertyColorForWildCards(card));
+        if (card.isWildCard() && card.getCurrentColor() == null) {
+            card.setCurrentColor(card.getType().getColors().get(0));
         }
         PropertyCards.add(card);
-    }//放地产 对应规则B
+    }
 
     public void putActionCard(ActionCards card) {
         HandCards.remove(card);
