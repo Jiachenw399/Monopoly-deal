@@ -8,12 +8,14 @@ public class MenuListener {
 
     private MainMenu menu;
     private Game game;
-    private GameScreen  gameScreen;
+    private GameScreen gameScreen;
+    private RuleScreen ruleScreen;
 
-    public MenuListener(MainMenu menu, Game game, GameScreen gameScreen) {
+    public MenuListener(MainMenu menu, Game game, GameScreen gameScreen, RuleScreen ruleScreen) {
         this.menu = menu;
         this.game = game;
         this.gameScreen = gameScreen;
+        this.ruleScreen = ruleScreen;
     }
 
     public void addListener(Scene scene) {
@@ -21,20 +23,27 @@ public class MenuListener {
             KeyCode code = event.getCode();
 
             if (code == KeyCode.N) {
-                System.out.println("按下了 N");
-                // TODO: 这里需要展示规则图片 或者打印出所有规则
+                menu.setShow(false);
+                ruleScreen.setShow(true);
             }
 
             if (code == KeyCode.A) {
                 menu.setShow(false);
+                ruleScreen.setShow(false);
                 gameScreen.setShow(true);
+
                 game.startGame();
-                game.mainLoop();
-                // TODO: 开始新游戏
+                game.startTurn(game.getCurrentPlayer());
             }
 
             if (code == KeyCode.X) {
                 System.exit(0);
+            }
+
+            if (code == KeyCode.ESCAPE) {
+                ruleScreen.setShow(false);
+                gameScreen.setShow(false);
+                menu.setShow(true);
             }
         });
     }
