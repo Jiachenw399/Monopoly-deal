@@ -30,7 +30,7 @@ public class DrawPileAndDiscardPile {
         //游戏结束时 更新牌堆
     }
 
-    public void xipai(){
+    public void shuffle(){
         if(DrawPile.isEmpty()){
             DrawPile.addAll(DiscardPile);
             shuffleDrawCards();
