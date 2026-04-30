@@ -13,6 +13,7 @@ public class GameListener {
         this.menu = menu;
         this.gameScreen = gameScreen;
         this.game = game;
+
     }
 
     public void addListener(Scene scene) {
