@@ -289,6 +289,8 @@ public class Player {
         }
     }
 
+    
+
     private void steal(Player p, PropertiesCards prop){
         p.getPropertyCards().remove(prop);
         this.PropertyCards.add(prop);
