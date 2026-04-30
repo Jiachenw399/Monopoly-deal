@@ -54,7 +54,7 @@ public class GameScreen {
     public void drawBackground() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
-        gc.setFill(Color.DARKGREEN);
+        gc.setFill(Color.rgb(25, 34, 55));
         gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
     }
 

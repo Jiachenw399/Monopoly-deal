@@ -70,14 +70,13 @@ public class Player {
         for (int i = 0; i < number; i++) {
             if (drawCardsAndDiscardPile.getDrawPile().isEmpty()) {
                 drawCardsAndDiscardPile.shuffle();
-                if(drawCardsAndDiscardPile.getDrawPile().isEmpty()){
-                    System.out.println("It is empty, cannot shuffle");
-                    return;
-                }
+            }
+            if (drawCardsAndDiscardPile.getDrawPile().isEmpty()) {
+                return;
             }
             HandCards.add(drawCardsAndDiscardPile.getDrawPile().remove(0));
         }
-    }//抓牌 抓几张 参数写几 牌不够了 带洗牌功能
+    }
 
     public void takeMoney(int number,Player player) {
         ArrayList<Card> cards = player.getBankCards();
@@ -162,7 +161,7 @@ public class Player {
     public void putPropertyCard(PropertiesCards card) {
         HandCards.remove(card);
         if (card.isWildCard() && card.getCurrentColor() == null) {
-            card.setCurrentColor(card.getType().getColors().get(0));
+            card.setCurrentColor(card.getType().getColors().getFirst());
         }
         PropertyCards.add(card);
     }
@@ -170,58 +169,125 @@ public class Player {
     public void putActionCard(ActionCards card) {
         HandCards.remove(card);
         drawCardsAndDiscardPile.getDiscardPile().add(card);
-        switch (card.getActionCardType()) {
+
+        ActionCardType type = card.getActionCardType();
+
+        switch (type) {
             case PASS_GO:
                 takeCard(2);
                 break;
+
             case BIRTHDAY:
-                for(Player player : Enemy){
-                    if(player!=this){takeMoney(2,player);}
+                for (Player enemy : Enemy) {
+                    receivePayment(2, enemy);
                 }
                 break;
-            case DEBT_COLLECTOR:
-                if(!Enemy.isEmpty()){
-                    takeMoney(5,Enemy.get(0));//要GUI选
-                }
-            case SLY_DEAL:
-                if(!Enemy.isEmpty()){
-                    Player target = Enemy.get(2);//GUI来选
-//                    ArrayList<PropertiesCards> stealTarget = getStealTarget(target);
-//                    if(!stealTarget.isEmpty()){
-//                        PropertiesCards propToSteal = stealTarget.get(0);//GUI选要steal的
-//                        steal(target, propToSteal);
-//                    }
-                }
-        }
-    }//对应规则C 行动卡
 
-//    public ArrayList<PropertiesCards> getStealTarget(Player p){
-//        ArrayList<PropertiesCards> canBeSteal = new ArrayList<>();
-//        ArrayList<PropertiesCards> allProperties = p.getPropertyCards();
-//        java.util.Map<PropertiesCardsType, Integer> colorCount = new java.util.HashMap<>();
-//        for (PropertiesCards prop : allProperties) {
-//            PropertiesCardsType type = prop.getType();
-//            if (!isWildCard(type)) {
-//                colorCount.put(type, colorCount.getOrDefault(type, 0) + 1);
-//            }
-//        }
-//        for(PropertiesCards prop : allProperties){
-//            PropertiesCardsType type = prop.getType();
-//            //这个地方逻辑不太对，没想好咋改
-//            if(isWildCard(type)){
-//                canBeSteal.add(prop);
-//                continue;
-//            }
-//            int totalNum = type.getColorValue();
-//            int currentNum = colorCount.get(type);
-//            //如果目前地产卡没集齐，可以偷
-//            if(currentNum != totalNum){
-//                canBeSteal.add(prop);
-//            }
-//
-//        }
-//        return canBeSteal;
-//    }
+            case DEBT_COLLECTOR:
+                if (!Enemy.isEmpty()) {
+                    receivePayment(5, Enemy.get(0));
+                }
+                break;
+
+            case SLY_DEAL:
+                if (!Enemy.isEmpty()) {
+                    Player target = Enemy.get(0);
+                    PropertiesCards stolenCard = findFirstPropertyThatCanBeStolen(target);
+
+                    if (stolenCard != null) {
+                        target.getPropertyCards().remove(stolenCard);
+                        PropertyCards.add(stolenCard);
+                    }
+                }
+                break;
+
+            case DEAL_BREAKER:
+                if (!Enemy.isEmpty()) {
+                    Player target = Enemy.get(0);
+                    ArrayList<PropertiesCards> completeSet = findFirstCompleteSet(target);
+
+                    if (!completeSet.isEmpty()) {
+                        target.getPropertyCards().removeAll(completeSet);
+                        PropertyCards.addAll(completeSet);
+                    }
+                }
+                break;
+
+            case FORCED_DEAL:
+                if (!Enemy.isEmpty() && !PropertyCards.isEmpty()) {
+                    Player target = Enemy.get(0);
+
+                    if (!target.getPropertyCards().isEmpty()) {
+                        PropertiesCards myCard = PropertyCards.remove(0);
+                        PropertiesCards targetCard = target.getPropertyCards().remove(0);
+
+                        PropertyCards.add(targetCard);
+                        target.getPropertyCards().add(myCard);
+                    }
+                }
+                break;
+
+            case RENT_WITH_RED_AND_YELLOW:
+            case RENT_WITH_ORANGE_AND_PINK:
+            case RENT_WITH_BROWN_AND_LIGHT_BLUE:
+            case RENT_WITH_BLACK_AND_LIGHT_GREEN:
+            case RENT_WITH_DARK_BLUE_AND_DARK_GREEN:
+                PropertyColor groupRentColor = getFirstUsableRentColor(type);
+
+                if (groupRentColor != null) {
+                    chargeRentFromAllPlayers(groupRentColor, false);
+                }
+                break;
+
+            case RENT_WITH_MULTIPLE_COLOR:
+                if (!Enemy.isEmpty()) {
+                    PropertyColor rentColor = getFirstUsableRentColor(type);
+
+                    if (rentColor != null) {
+                        chargeRentFromOnePlayer(Enemy.get(0), rentColor, false);
+                    }
+                }
+                break;
+
+            case DOUBLE_THE_RENT:
+                takeCard(1);
+                break;
+
+            case HOUSE:
+                for (PropertyColor color : PropertyColor.values()) {
+                    if (isCompleteSet(color)) {
+                        PropertiesCards property = findFirstPropertyByColor(color);
+
+                        if (property != null && !property.hasHouse()) {
+                            property.setHasHouse(true);
+                            break;
+                        }
+                    }
+                }
+                break;
+
+            case HOTEL:
+                for (PropertyColor color : PropertyColor.values()) {
+                    if (isCompleteSet(color)) {
+                        PropertiesCards property = findFirstPropertyByColor(color);
+
+                        if (property != null && property.hasHouse() && !property.hasHotel()) {
+                            property.setHasHotel(true);
+                            break;
+                        }
+                    }
+                }
+                break;
+
+            case JUST_SAY_NO:
+                BankCards.add(card);
+                drawCardsAndDiscardPile.getDiscardPile().remove(card);
+                break;
+
+            default:
+                break;
+        }
+    }
 
     private void steal(Player p, PropertiesCards prop){
         p.getPropertyCards().remove(prop);

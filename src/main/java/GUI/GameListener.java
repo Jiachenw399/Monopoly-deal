@@ -29,17 +29,7 @@ public class GameListener {
             }
 
             if (gameScreen.isEndTurnClicked(x, y)) {
-                Player currentPlayer = game.getCurrentPlayer();
-
-                if (!game.isDiscard()) {
-                    game.startDiscard();
-                }
-
-                if (!game.isDiscard()) {
-                    game.endTurn(currentPlayer);
-                    game.startTurn(game.getCurrentPlayer());
-                }
-
+                game.guiEndTurn();
                 return;
             }
 
