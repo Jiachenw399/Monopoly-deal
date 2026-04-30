@@ -7,9 +7,9 @@ import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import javafx.scene.text.TextAlignment;
 import logic.Game;
+import java.util.ArrayList;
 import model.*;
 
-import java.util.ArrayList;
 
 public class GameScreen {
     private Canvas canvas;
