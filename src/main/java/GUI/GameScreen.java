@@ -16,6 +16,26 @@ public class GameScreen {
     private Canvas canvas;
     private Game game;
     private boolean isShow;
+    private ActionCards pendingSlyDealCard = null;
+    private double slyPanelX = 180;
+    private double slyPanelY = 110;
+    private double slyCardWidth = 90;
+    private double slyCardHeight = 120;
+    private double slyGap = 15;
+    private ActionCards pendingTwoColorRentCard = null;
+
+    private double rentPanelX = 330;
+    private double rentPanelY = 190;
+    private double rentButtonWidth = 170;
+    private double rentButtonHeight = 55;
+
+    private ActionCards pendingDebtCollectorCard = null;
+
+    private double debtPanelX = 170;
+    private double debtPanelY = 135;
+    private double debtPlayerWidth = 160;
+    private double debtPlayerHeight = 230;
+    private double debtPlayerGap = 25;
 
     private PropertiesCards selectedWildCard = null;
     private double propertyStartX = 20;
@@ -58,6 +78,9 @@ public class GameScreen {
         drawViewedPlayerInfo();
         drawButtons();
         drawWinMessage();
+        drawSlyDealSelection();
+        drawDebtCollectorSelection();
+        drawTwoColorRentSelection();
     }
 
     public void drawBackground() {
@@ -693,5 +716,504 @@ public class GameScreen {
     public void clear() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+    }
+
+    public void startSlyDealSelection(ActionCards card) {
+        pendingSlyDealCard = card;
+        selectedWildCard = null;
+    }
+
+    public void cancelSlyDealSelection() {
+        pendingSlyDealCard = null;
+    }
+
+    public boolean isSlyDealSelecting() {
+        return pendingSlyDealCard != null;
+    }
+
+    public ActionCards getPendingSlyDealCard() {
+        return pendingSlyDealCard;
+    }
+
+    public boolean isSlyDealCancelClicked(double mouseX, double mouseY) {
+        return isSlyDealSelecting()
+                && mouseX >= 720 && mouseX <= 860
+                && mouseY >= 505 && mouseY <= 545;
+    }
+
+    public SlyDealChoice getClickedSlyDealChoice(double mouseX, double mouseY) {
+        if (!isSlyDealSelecting()) {
+            return null;
+        }
+
+        int displayIndex = 0;
+
+        for (int playerIndex = 0; playerIndex < game.getPlayers().size(); playerIndex++) {
+            if (playerIndex == game.getCurrentPlayerIndex()) {
+                continue;
+            }
+
+            Player targetPlayer = game.getPlayers().get(playerIndex);
+
+            for (PropertiesCards card : targetPlayer.getPropertyCards()) {
+                if (!canBeStolenBySlyDeal(targetPlayer, card)) {
+                    continue;
+                }
+
+                double x = slyPanelX + (displayIndex % 7) * (slyCardWidth + slyGap);
+                double y = slyPanelY + (displayIndex / 7) * (slyCardHeight + 35);
+
+                if (mouseX >= x && mouseX <= x + slyCardWidth
+                        && mouseY >= y && mouseY <= y + slyCardHeight) {
+                    return new SlyDealChoice(targetPlayer, card);
+                }
+
+                displayIndex++;
+            }
+        }
+
+        return null;
+    }
+
+    private void drawSlyDealSelection() {
+        if (!isSlyDealSelecting()) {
+            return;
+        }
+
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+
+        gc.setFill(Color.rgb(0, 0, 0, 0.75));
+        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+
+        gc.setFill(Color.WHITE);
+        gc.setFont(Font.font("Arial", 26));
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.TOP);
+        gc.fillText("SLY DEAL: Choose one property to steal", Game.SCREEN_WIDTH / 2, 35);
+
+        gc.setFont(Font.font("Arial", 16));
+        gc.fillText("Completed sets cannot be stolen. Wild cards can be stolen if they are not in a completed set.",
+                Game.SCREEN_WIDTH / 2, 70);
+
+        int displayIndex = 0;
+
+        for (int playerIndex = 0; playerIndex < game.getPlayers().size(); playerIndex++) {
+            if (playerIndex == game.getCurrentPlayerIndex()) {
+                continue;
+            }
+
+            Player targetPlayer = game.getPlayers().get(playerIndex);
+
+            for (PropertiesCards card : targetPlayer.getPropertyCards()) {
+                if (!canBeStolenBySlyDeal(targetPlayer, card)) {
+                    continue;
+                }
+
+                double x = slyPanelX + (displayIndex % 7) * (slyCardWidth + slyGap);
+                double y = slyPanelY + (displayIndex / 7) * (slyCardHeight + 35);
+
+                gc.setFill(Color.LIGHTBLUE);
+                gc.fillRoundRect(x, y, slyCardWidth, slyCardHeight, 15, 15);
+
+                gc.setStroke(Color.WHITE);
+                gc.strokeRoundRect(x, y, slyCardWidth, slyCardHeight, 15, 15);
+
+                gc.setFill(Color.BLACK);
+                gc.setFont(Font.font("Arial", 12));
+                gc.setTextAlign(TextAlignment.CENTER);
+                gc.setTextBaseline(VPos.TOP);
+
+                gc.fillText("Player " + (playerIndex + 1), x + slyCardWidth / 2, y + 10);
+                gc.fillText(card.getValue() + "M", x + slyCardWidth / 2, y + 32);
+
+                String colorText = card.getCurrentColor() == null ? "NO COLOR" : card.getCurrentColor().name();
+                drawWrappedText(gc, colorText, x + 8, y + 55, slyCardWidth - 16, 12);
+
+                if (card.isWildCard()) {
+                    gc.setFill(Color.RED);
+                    gc.setFont(Font.font("Arial", 11));
+                    gc.fillText("WILD", x + slyCardWidth / 2, y + 100);
+                }
+
+                displayIndex++;
+            }
+        }
+
+        if (displayIndex == 0) {
+            gc.setFill(Color.LIGHTYELLOW);
+            gc.setFont(Font.font("Arial", 22));
+            gc.setTextAlign(TextAlignment.CENTER);
+            gc.fillText("No property can be stolen.", Game.SCREEN_WIDTH / 2, 280);
+        }
+
+        drawButton(gc, 720, 505, 140, 40, "CANCEL");
+    }
+
+    private boolean canBeStolenBySlyDeal(Player targetPlayer, PropertiesCards card) {
+        PropertyColor color = card.getCurrentColor();
+
+        if (color == null) {
+            return true;
+        }
+
+        int count = 0;
+
+        for (PropertiesCards propertyCard : targetPlayer.getPropertyCards()) {
+            if (propertyCard.getCurrentColor() == color) {
+                count++;
+            }
+        }
+
+        return count < color.getAmountToCompleteSet();
+    }
+
+    public static class SlyDealChoice {
+        private Player targetPlayer;
+        private PropertiesCards selectedCard;
+
+        public SlyDealChoice(Player targetPlayer, PropertiesCards selectedCard) {
+            this.targetPlayer = targetPlayer;
+            this.selectedCard = selectedCard;
+        }
+
+        public Player getTargetPlayer() {
+            return targetPlayer;
+        }
+
+        public PropertiesCards getSelectedCard() {
+            return selectedCard;
+        }
+    }
+
+    public void startDebtCollectorSelection(ActionCards card) {
+        pendingDebtCollectorCard = card;
+        selectedWildCard = null;
+    }
+
+    public void cancelDebtCollectorSelection() {
+        pendingDebtCollectorCard = null;
+    }
+
+    public boolean isDebtCollectorSelecting() {
+        return pendingDebtCollectorCard != null;
+    }
+
+    public ActionCards getPendingDebtCollectorCard() {
+        return pendingDebtCollectorCard;
+    }
+
+    public boolean isDebtCollectorCancelClicked(double mouseX, double mouseY) {
+        return isDebtCollectorSelecting()
+                && mouseX >= 720 && mouseX <= 860
+                && mouseY >= 505 && mouseY <= 545;
+    }
+
+    public Player getClickedDebtCollectorTarget(double mouseX, double mouseY) {
+        if (!isDebtCollectorSelecting()) {
+            return null;
+        }
+
+        int displayIndex = 0;
+
+        for (int i = 0; i < game.getPlayers().size(); i++) {
+            if (i == game.getCurrentPlayerIndex()) {
+                continue;
+            }
+
+            double x = debtPanelX + displayIndex * (debtPlayerWidth + debtPlayerGap);
+            double y = debtPanelY;
+
+            if (mouseX >= x && mouseX <= x + debtPlayerWidth
+                    && mouseY >= y && mouseY <= y + debtPlayerHeight) {
+                return game.getPlayers().get(i);
+            }
+
+            displayIndex++;
+        }
+
+        return null;
+    }
+
+    private void drawDebtCollectorSelection() {
+        if (!isDebtCollectorSelecting()) {
+            return;
+        }
+
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+
+        gc.setFill(Color.rgb(0, 0, 0, 0.75));
+        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+
+        gc.setFill(Color.WHITE);
+        gc.setFont(Font.font("Arial", 26));
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.TOP);
+        gc.fillText("DEBT COLLECTOR: Choose one player to collect 5M", Game.SCREEN_WIDTH / 2, 45);
+
+        gc.setFont(Font.font("Arial", 16));
+        gc.fillText("Click a player card to collect money. Click CANCEL if you do not want to use this card.",
+                Game.SCREEN_WIDTH / 2, 80);
+
+        int displayIndex = 0;
+
+        for (int i = 0; i < game.getPlayers().size(); i++) {
+            if (i == game.getCurrentPlayerIndex()) {
+                continue;
+            }
+
+            Player player = game.getPlayers().get(i);
+
+            double x = debtPanelX + displayIndex * (debtPlayerWidth + debtPlayerGap);
+            double y = debtPanelY;
+
+            drawDebtCollectorPlayerBox(gc, player, i, x, y);
+
+            displayIndex++;
+        }
+
+        drawButton(gc, 720, 505, 140, 40, "CANCEL");
+    }
+
+    private void drawDebtCollectorPlayerBox(GraphicsContext gc, Player player, int playerIndex, double x, double y) {
+        gc.setFill(Color.LIGHTYELLOW);
+        gc.fillRoundRect(x, y, debtPlayerWidth, debtPlayerHeight, 18, 18);
+
+        gc.setStroke(Color.WHITE);
+        gc.strokeRoundRect(x, y, debtPlayerWidth, debtPlayerHeight, 18, 18);
+
+        gc.setFill(Color.BLACK);
+        gc.setFont(Font.font("Arial", 20));
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.TOP);
+        gc.fillText("Player " + (playerIndex + 1), x + debtPlayerWidth / 2, y + 15);
+
+        int bankTotal = 0;
+
+        for (Card card : player.getBankCards()) {
+            bankTotal += card.getValue();
+        }
+
+        gc.setFont(Font.font("Arial", 15));
+        gc.fillText("Bank: " + bankTotal + "M", x + debtPlayerWidth / 2, y + 50);
+        gc.fillText("Properties: " + player.getPropertyCards().size(), x + debtPlayerWidth / 2, y + 75);
+
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setFont(Font.font("Arial", 13));
+
+        double textX = x + 15;
+        double textY = y + 110;
+
+        gc.fillText("Money Cards:", textX, textY);
+
+        if (player.getBankCards().isEmpty()) {
+            gc.fillText("None", textX, textY + 22);
+        } else {
+            String moneyText = "";
+
+            for (int i = 0; i < player.getBankCards().size(); i++) {
+                if (i >= 6) {
+                    moneyText += "...";
+                    break;
+                }
+
+                moneyText += player.getBankCards().get(i).getValue() + "M ";
+            }
+
+            gc.fillText(moneyText, textX, textY + 22);
+        }
+
+        gc.fillText("Property Colors:", textX, textY + 55);
+
+        if (player.getPropertyCards().isEmpty()) {
+            gc.fillText("None", textX, textY + 77);
+        } else {
+            String propertyText = "";
+
+            for (int i = 0; i < player.getPropertyCards().size(); i++) {
+                if (i >= 4) {
+                    propertyText += "...";
+                    break;
+                }
+
+                PropertiesCards card = player.getPropertyCards().get(i);
+
+                if (card.getCurrentColor() == null) {
+                    propertyText += "NO ";
+                } else {
+                    propertyText += getShortColorName(card.getCurrentColor()) + " ";
+                }
+            }
+
+            gc.fillText(propertyText, textX, textY + 77);
+        }
+    }
+
+    public void startTwoColorRentSelection(ActionCards card) {
+        pendingTwoColorRentCard = card;
+        selectedWildCard = null;
+    }
+
+    public void cancelTwoColorRentSelection() {
+        pendingTwoColorRentCard = null;
+    }
+
+    public boolean isTwoColorRentSelecting() {
+        return pendingTwoColorRentCard != null;
+    }
+
+    public ActionCards getPendingTwoColorRentCard() {
+        return pendingTwoColorRentCard;
+    }
+
+    public boolean isTwoColorRentCancelClicked(double mouseX, double mouseY) {
+        return isTwoColorRentSelecting()
+                && mouseX >= 720 && mouseX <= 860
+                && mouseY >= 505 && mouseY <= 545;
+    }
+
+    public PropertyColor getClickedTwoColorRentColor(double mouseX, double mouseY) {
+        if (!isTwoColorRentSelecting()) {
+            return null;
+        }
+
+        ArrayList<PropertyColor> colors = getTwoRentColors(pendingTwoColorRentCard.getActionCardType());
+
+        for (int i = 0; i < colors.size(); i++) {
+            PropertyColor color = colors.get(i);
+
+            double x = rentPanelX + i * (rentButtonWidth + 40);
+            double y = rentPanelY;
+
+            if (mouseX >= x && mouseX <= x + rentButtonWidth
+                    && mouseY >= y && mouseY <= y + rentButtonHeight) {
+
+                if (currentPlayerHasColor(color)) {
+                    return color;
+                }
+
+                return null;
+            }
+        }
+
+        return null;
+    }
+
+    private void drawTwoColorRentSelection() {
+        if (!isTwoColorRentSelecting()) {
+            return;
+        }
+
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+
+        gc.setFill(Color.rgb(0, 0, 0, 0.75));
+        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+
+        gc.setFill(Color.WHITE);
+        gc.setFont(Font.font("Arial", 26));
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.TOP);
+        gc.fillText("RENT CARD: Choose one color to charge rent", Game.SCREEN_WIDTH / 2, 60);
+
+        gc.setFont(Font.font("Arial", 16));
+        gc.fillText("Grey color means you do not have that property color, so it cannot be selected.",
+                Game.SCREEN_WIDTH / 2, 100);
+
+        ArrayList<PropertyColor> colors = getTwoRentColors(pendingTwoColorRentCard.getActionCardType());
+
+        boolean hasAnyColor = false;
+
+        for (int i = 0; i < colors.size(); i++) {
+            PropertyColor color = colors.get(i);
+
+            double x = rentPanelX + i * (rentButtonWidth + 40);
+            double y = rentPanelY;
+
+            boolean usable = currentPlayerHasColor(color);
+
+            if (usable) {
+                hasAnyColor = true;
+                gc.setFill(Color.LIGHTGREEN);
+            } else {
+                gc.setFill(Color.GRAY);
+            }
+
+            gc.fillRoundRect(x, y, rentButtonWidth, rentButtonHeight, 14, 14);
+
+            gc.setStroke(Color.WHITE);
+            gc.strokeRoundRect(x, y, rentButtonWidth, rentButtonHeight, 14, 14);
+
+            gc.setFill(Color.BLACK);
+            gc.setFont(Font.font("Arial", 16));
+            gc.setTextAlign(TextAlignment.CENTER);
+            gc.setTextBaseline(VPos.CENTER);
+            gc.fillText(color.name(), x + rentButtonWidth / 2, y + rentButtonHeight / 2);
+
+            if (!usable) {
+                gc.setFill(Color.DARKRED);
+                gc.setFont(Font.font("Arial", 12));
+                gc.fillText("Unavailable", x + rentButtonWidth / 2, y + rentButtonHeight + 18);
+            }
+        }
+
+        if (!hasAnyColor) {
+            gc.setFill(Color.LIGHTYELLOW);
+            gc.setFont(Font.font("Arial", 20));
+            gc.setTextAlign(TextAlignment.CENTER);
+            gc.setTextBaseline(VPos.TOP);
+            gc.fillText("You do not have either color. This card cannot be used now.",
+                    Game.SCREEN_WIDTH / 2, 340);
+        }
+
+        drawButton(gc, 720, 505, 140, 40, "CANCEL");
+
+        gc.setTextBaseline(VPos.TOP);
+    }
+
+    private ArrayList<PropertyColor> getTwoRentColors(ActionCardType type) {
+        ArrayList<PropertyColor> colors = new ArrayList<>();
+
+        switch (type) {
+            case RENT_WITH_RED_AND_YELLOW:
+                colors.add(PropertyColor.RED);
+                colors.add(PropertyColor.YELLOW);
+                break;
+
+            case RENT_WITH_ORANGE_AND_PINK:
+                colors.add(PropertyColor.ORANGE);
+                colors.add(PropertyColor.PINK);
+                break;
+
+            case RENT_WITH_BROWN_AND_LIGHT_BLUE:
+                colors.add(PropertyColor.BROWN);
+                colors.add(PropertyColor.LIGHT_BLUE);
+                break;
+
+            case RENT_WITH_BLACK_AND_LIGHT_GREEN:
+                colors.add(PropertyColor.BLACK);
+                colors.add(PropertyColor.LIGHT_GREEN);
+                break;
+
+            case RENT_WITH_DARK_BLUE_AND_DARK_GREEN:
+                colors.add(PropertyColor.DARK_BLUE);
+                colors.add(PropertyColor.DARK_GREEN);
+                break;
+
+            default:
+                break;
+        }
+
+        return colors;
+    }
+
+    private boolean currentPlayerHasColor(PropertyColor color) {
+        Player currentPlayer = game.getCurrentPlayer();
+
+        for (PropertiesCards card : currentPlayer.getPropertyCards()) {
+            if (card.getCurrentColor() == color) {
+                return true;
+            }
+        }
+
+        return false;
     }
 }

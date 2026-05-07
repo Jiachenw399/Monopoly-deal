@@ -3,12 +3,7 @@ package logic;
 import java.util.ArrayList;
 import java.util.Scanner;
 
-import model.ActionCards;
-import model.Card;
-import model.DrawPileAndDiscardPile;
-import model.MoneyCards;
-import model.Player;
-import model.PropertiesCards;
+import model.*;
 
 public class Game {
     private ArrayList<Player> players;
@@ -44,84 +39,58 @@ public class Game {
         System.out.println("Monopoly Deal GUI game started.");
     }
 
-    /**
-     * CLI 演示主循环
-     * 先保证最小可玩闭环：
-     * 初始化 -> 摸牌 -> 最多3次出牌 -> 超7弃牌 -> 胜利判断 -> 回合切换
-     */
-    public void mainLoop() {
-        Scanner scanner = new Scanner(System.in);
+    public void finishSlyDeal(ActionCards slyDealCard, Player targetPlayer, PropertiesCards stolenCard) {
+        Player currentPlayer = getCurrentPlayer();
 
-        while (!isWin) {
-            Player currentPlayer = getCurrentPlayer();
-            startTurn(currentPlayer);
+        if (slyDealCard == null || targetPlayer == null || stolenCard == null) {
+            return;
+        }
 
-            while (currentPlayer.getUseCardTimes() < 3 && !isWin) {
-                System.out.println("\n=================================");
-                System.out.println("当前玩家：玩家 " + (currentPlayerIndex + 1));
-                System.out.println("已出牌次数：" + currentPlayer.getUseCardTimes() + "/3");
-                System.out.println("手牌如下：");
-                currentPlayer.printAllCardsOfHands();
-                System.out.println("输入手牌序号出牌（从1开始），输入 -1 结束出牌阶段：");
+        if (!currentPlayer.getHandCards().contains(slyDealCard)) {
+            return;
+        }
 
-                int choice;
-                try {
-                    choice = scanner.nextInt();
-                } catch (Exception e) {
-                    System.out.println("请输入数字！");
-                    scanner.nextLine();
-                    continue;
-                }
+        if (!targetPlayer.getPropertyCards().contains(stolenCard)) {
+            return;
+        }
 
-                if (choice == -1) {
-                    break;
-                }
+        currentPlayer.getHandCards().remove(slyDealCard);
+        drawCards.getDiscardPile().add(slyDealCard);
 
-                if (choice < 1 || choice > currentPlayer.getHandCards().size()) {
-                    System.out.println("请输入有效的卡牌序号！");
-                    continue;
-                }
+        targetPlayer.getPropertyCards().remove(stolenCard);
+        currentPlayer.getPropertyCards().add(stolenCard);
 
-                Card selectedCard = currentPlayer.getHandCards().get(choice - 1);
-                playCard(selectedCard);
+        currentPlayer.setUseCardTimes(currentPlayer.getUseCardTimes() + 1);
 
-                if (currentPlayer.checkIfWin()) {
-                    isWin = true;
-                    break;
-                }
-            }
+        if (currentPlayer.checkIfWin()) {
+            isWin = true;
+        }
+    }
 
-            if (isWin) {
-                System.out.println("🏆 玩家 " + (currentPlayerIndex + 1) + " 获胜！");
-                break;
-            }
+    public void finishDebtCollector(ActionCards debtCollectorCard, Player targetPlayer) {
+        Player currentPlayer = getCurrentPlayer();
 
-            startDiscard();
+        if (debtCollectorCard == null || targetPlayer == null) {
+            return;
+        }
 
-            while (isDiscard) {
-                System.out.println("\n玩家 " + (currentPlayerIndex + 1) + " 需要弃牌。");
-                currentPlayer.printAllCardsOfHands();
-                System.out.println("请输入要弃掉的手牌序号（从1开始）：");
+        if (!currentPlayer.getHandCards().contains(debtCollectorCard)) {
+            return;
+        }
 
-                int discardChoice;
-                try {
-                    discardChoice = scanner.nextInt();
-                } catch (Exception e) {
-                    System.out.println("请输入数字！");
-                    scanner.nextLine();
-                    continue;
-                }
+        if (targetPlayer == currentPlayer) {
+            return;
+        }
 
-                if (discardChoice < 1 || discardChoice > currentPlayer.getHandCards().size()) {
-                    System.out.println("请输入有效的弃牌序号！");
-                    continue;
-                }
+        currentPlayer.getHandCards().remove(debtCollectorCard);
+        drawCards.getDiscardPile().add(debtCollectorCard);
 
-                Card discardCard = currentPlayer.getHandCards().get(discardChoice - 1);
-                discard(discardCard);
-            }
+        currentPlayer.takeMoney(5, targetPlayer);
 
-            endTurn(currentPlayer);
+        currentPlayer.setUseCardTimes(currentPlayer.getUseCardTimes() + 1);
+
+        if (currentPlayer.checkIfWin()) {
+            isWin = true;
         }
     }
 
@@ -187,17 +156,6 @@ public class Game {
 
         Player nextPlayer = getCurrentPlayer();
         startTurn(nextPlayer);
-    }
-
-    /**
-     * 若手牌超过7张，进入弃牌阶段
-     */
-    public void startDiscard() {
-        Player currentPlayer = getCurrentPlayer();
-        if (currentPlayer.getHandCards().size() > 7) {
-            isDiscard = true;
-            System.out.println("⚠️ 玩家 " + (currentPlayerIndex + 1) + " 手牌超过7张，进入弃牌阶段！");
-        }
     }
 
     /**
@@ -307,6 +265,16 @@ public class Game {
         System.out.println("✅ 游戏初始化完成：4名玩家，每人初始5张手牌。");
     }
 
+    public void finishTwoColorRent(ActionCards rentCard, PropertyColor selectedColor) {
+        Player currentPlayer = getCurrentPlayer();
+
+        currentPlayer.playSelectedTwoColorRent(rentCard, selectedColor);
+
+        if (currentPlayer.checkIfWin()) {
+            isWin = true;
+        }
+    }
+
     public Player getCurrentPlayer() {
         return players.get(currentPlayerIndex);
     }
@@ -319,16 +287,8 @@ public class Game {
         return players;
     }
 
-    public void setPlayers(ArrayList<Player> players) {
-        this.players = players;
-    }
-
     public DrawPileAndDiscardPile getDrawCards() {
         return drawCards;
-    }
-
-    public void setDrawCards(DrawPileAndDiscardPile drawCards) {
-        this.drawCards = drawCards;
     }
 
     public boolean isWin() {
@@ -341,21 +301,5 @@ public class Game {
 
     public boolean isDiscard() {
         return isDiscard;
-    }
-
-    public static double getScreenWidth() {
-        return SCREEN_WIDTH;
-    }
-
-    public static void setScreenWidth(double screenWidth) {
-        SCREEN_WIDTH = screenWidth;
-    }
-
-    public static double getScreenHeight() {
-        return SCREEN_HEIGHT;
-    }
-
-    public static void setScreenHeight(double screenHeight) {
-        SCREEN_HEIGHT = screenHeight;
     }
 }
