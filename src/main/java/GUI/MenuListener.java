@@ -56,7 +56,6 @@ public class MenuListener {
         gameScreen.setShow(true);
 
         game.startGame();
-        game.startTurn(game.getCurrentPlayer());
     }
 
     private void returnToMenu() {
