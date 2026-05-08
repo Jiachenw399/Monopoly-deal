@@ -1,6 +1,7 @@
 package logic;
 
 import model.ActionCards;
+import model.ActionCardType;
 import model.Card;
 import model.DrawPileAndDiscardPile;
 import model.MoneyCards;
@@ -117,6 +118,7 @@ public class Game {
 
         if (currentPlayer.getHandCards().size() <= 7) {
             isDiscard = false;
+            moveToNextPlayer(currentPlayer);
         }
     }
 
@@ -181,11 +183,32 @@ public class Game {
         }
 
         if (card instanceof ActionCards actionCard) {
+            if (!canPlayActionCardDirectly(actionCard)) {
+                return false;
+            }
+
             currentPlayer.putActionCard(actionCard);
             return true;
         }
 
         return false;
+    }
+
+    private boolean canPlayActionCardDirectly(ActionCards card) {
+        ActionCardType type = card.getActionCardType();
+
+        return switch (type) {
+            case SLY_DEAL,
+                 DEBT_COLLECTOR,
+                 RENT_WITH_RED_AND_YELLOW,
+                 RENT_WITH_ORANGE_AND_PINK,
+                 RENT_WITH_BROWN_AND_LIGHT_BLUE,
+                 RENT_WITH_BLACK_AND_LIGHT_GREEN,
+                 RENT_WITH_DARK_BLUE_AND_DARK_GREEN,
+                 DOUBLE_THE_RENT,
+                 JUST_SAY_NO -> false;
+            default -> true;
+        };
     }
 
     public void finishSlyDeal(ActionCards slyDealCard, Player targetPlayer, PropertiesCards stolenCard) {
@@ -208,11 +231,20 @@ public class Game {
             return false;
         }
 
-        if (!currentPlayer.getHandCards().contains(card)) {
+        if (card.getActionCardType() != ActionCardType.SLY_DEAL) {
             return false;
         }
 
-        return targetPlayer.getPropertyCards().contains(stolenCard);
+        if (targetPlayer == currentPlayer) {
+            return false;
+        }
+
+        if (!canPlayCard(currentPlayer, card)) {
+            return false;
+        }
+
+        return targetPlayer.getPropertyCards().contains(stolenCard)
+                && targetPlayer.canLosePropertyToSlyDeal(stolenCard);
     }
 
     public void finishDebtCollector(ActionCards debtCollectorCard, Player targetPlayer) {
@@ -234,22 +266,50 @@ public class Game {
             return false;
         }
 
+        if (card.getActionCardType() != ActionCardType.DEBT_COLLECTOR) {
+            return false;
+        }
+
         if (targetPlayer == currentPlayer) {
             return false;
         }
 
-        return currentPlayer.getHandCards().contains(card);
+        return canPlayCard(currentPlayer, card);
     }
 
     public void finishTwoColorRent(ActionCards rentCard, PropertyColor selectedColor) {
         Player currentPlayer = getCurrentPlayer();
 
-        if (rentCard == null || selectedColor == null) {
+        if (!canFinishTwoColorRent(currentPlayer, rentCard, selectedColor)) {
             return;
         }
 
         currentPlayer.playSelectedTwoColorRent(rentCard, selectedColor);
         checkCurrentPlayerWin();
+    }
+
+    private boolean canFinishTwoColorRent(Player currentPlayer, ActionCards card, PropertyColor selectedColor) {
+        if (card == null || selectedColor == null) {
+            return false;
+        }
+
+        if (!canPlayCard(currentPlayer, card)) {
+            return false;
+        }
+
+        return switch (card.getActionCardType()) {
+            case RENT_WITH_RED_AND_YELLOW ->
+                    selectedColor == PropertyColor.RED || selectedColor == PropertyColor.YELLOW;
+            case RENT_WITH_ORANGE_AND_PINK ->
+                    selectedColor == PropertyColor.ORANGE || selectedColor == PropertyColor.PINK;
+            case RENT_WITH_BROWN_AND_LIGHT_BLUE ->
+                    selectedColor == PropertyColor.BROWN || selectedColor == PropertyColor.LIGHT_BLUE;
+            case RENT_WITH_BLACK_AND_LIGHT_GREEN ->
+                    selectedColor == PropertyColor.BLACK || selectedColor == PropertyColor.LIGHT_GREEN;
+            case RENT_WITH_DARK_BLUE_AND_DARK_GREEN ->
+                    selectedColor == PropertyColor.DARK_BLUE || selectedColor == PropertyColor.DARK_GREEN;
+            default -> false;
+        };
     }
 
     private void moveActionCardToDiscard(Player currentPlayer, ActionCards card) {

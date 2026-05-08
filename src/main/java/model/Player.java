@@ -3,7 +3,6 @@ package model;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Scanner;
 
 
 public class Player {
@@ -38,45 +37,78 @@ public class Player {
         }
     }
 
-    public void takeMoney(int number,Player player) {
-        ArrayList<Card> cards = player.getBankCards();
-        int totalMoney = 0;
-        for(Card card : cards){
-            totalMoney += card.getValue();
-        }
-//        int [] eachMoney = new int[cards.size()];
-//        for (int i = 0; i < cards.size(); i++) {
-//            totalMoney += cards.get(i).getValue();
-//            eachMoney[i] = cards.get(i).getValue();
-//        }
-        if (totalMoney <= number) {
-            BankCards.addAll(player.getBankCards());
-            player.getBankCards().clear();
+    public void takeMoney(int number, Player player) {
+        if (player == null || number <= 0) {
             return;
         }
+
+        int totalAvailable = getTotalValue(player.getBankCards()) + getTotalValue(player.getPropertyCards());
+
+        if (totalAvailable <= number) {
+            BankCards.addAll(player.getBankCards());
+            PropertyCards.addAll(player.getPropertyCards());
+            player.getBankCards().clear();
+            player.getPropertyCards().clear();
+            return;
+        }
+
+        int bankTotal = getTotalValue(player.getBankCards());
+
+        if (bankTotal >= number) {
+            ArrayList<Card> bankPayment = findSmallestPaymentCombination(player.getBankCards(), number);
+            BankCards.addAll(bankPayment);
+            player.getBankCards().removeAll(bankPayment);
+            return;
+        }
+
+        BankCards.addAll(player.getBankCards());
+        player.getBankCards().clear();
+
+        int remainingAmount = number - bankTotal;
+        ArrayList<Card> propertyPayment = findSmallestPaymentCombination(player.getPropertyCards(), remainingAmount);
+
+        for (Card card : propertyPayment) {
+            if (card instanceof PropertiesCards propertyCard) {
+                PropertyCards.add(propertyCard);
+                player.getPropertyCards().remove(propertyCard);
+            }
+        }
+    }
+
+    private int getTotalValue(List<? extends Card> cards) {
+        int total = 0;
+
+        for (Card card : cards) {
+            total += card.getValue();
+        }
+
+        return total;
+    }
+
+    private ArrayList<Card> findSmallestPaymentCombination(List<? extends Card> cards, int amount) {
         ArrayList<Card> bestCombination = new ArrayList<>();
         int bestSum = Integer.MAX_VALUE;
         int n = cards.size();
-        for(int mask = 1; mask < (1<<n); mask++){
-            ArrayList<Card> com = new ArrayList<>();//the current combination
+
+        for (long mask = 1; mask < (1L << n); mask++) {
+            ArrayList<Card> currentCombination = new ArrayList<>();
             int currentSum = 0;
-            for(int i=0; i<n; i++){
-                if ((mask & (1 << i)) != 0) {
+
+            for (int i = 0; i < n; i++) {
+                if ((mask & (1L << i)) != 0) {
                     Card card = cards.get(i);
-                    com.add(card);
+                    currentCombination.add(card);
                     currentSum += card.getValue();
                 }
             }
-            if(currentSum>=number){
-                if(currentSum < bestSum){
-                    bestSum = currentSum;
-                    bestCombination = com;
-                }
+
+            if (currentSum >= amount && currentSum < bestSum) {
+                bestSum = currentSum;
+                bestCombination = currentCombination;
             }
         }
-        BankCards.addAll(bestCombination);
-        cards.removeAll(bestCombination);
-        //TODO：待完善，还不能用户选择组合给牌
+
+        return bestCombination;
     }
 
     public void putCard(Card card) {
@@ -156,39 +188,31 @@ public class Player {
     }
     
     private void receivePayment(int amount, Player payer) {
-        if (payer == null || amount <= 0) {
-            return;
-        }
-    
-        int paid = 0;
-    
-        while (!payer.getBankCards().isEmpty() && paid < amount) {
-            Card card = payer.getBankCards().remove(0);
-            BankCards.add(card);
-            paid += card.getValue();
-        }
-    
-        while (!payer.getPropertyCards().isEmpty() && paid < amount) {
-            PropertiesCards card = payer.getPropertyCards().remove(0);
-            PropertyCards.add(card);
-            paid += card.getValue();
-        }
+        takeMoney(amount, payer);
     }
     
     private PropertiesCards findFirstPropertyThatCanBeStolen(Player target) {
         for (PropertiesCards card : target.getPropertyCards()) {
-            PropertyColor color = card.getCurrentColor();
-    
-            if (color == null) {
-                return card;
-            }
-    
-            if (!target.isCompleteSet(color)) {
+            if (target.canLosePropertyToSlyDeal(card)) {
                 return card;
             }
         }
     
         return null;
+    }
+
+    public boolean canLosePropertyToSlyDeal(PropertiesCards card) {
+        if (card == null || !PropertyCards.contains(card)) {
+            return false;
+        }
+
+        PropertyColor color = card.getCurrentColor();
+
+        if (color == null) {
+            return true;
+        }
+
+        return !isCompleteSet(color);
     }
 
     public boolean canUseRentColor(PropertyColor color) {
@@ -386,7 +410,9 @@ public class Player {
                 break;
 
             case DOUBLE_THE_RENT:
-                takeCard(1);
+                HandCards.add(card);
+                drawCardsAndDiscardPile.getDiscardPile().remove(card);
+                System.out.println("Double The Rent must be played together with a rent card.");
                 break;
 
             case HOUSE:
@@ -416,8 +442,9 @@ public class Player {
                 break;
 
             case JUST_SAY_NO:
-                BankCards.add(card);
+                HandCards.add(card);
                 drawCardsAndDiscardPile.getDiscardPile().remove(card);
+                System.out.println("Just Say No can only be used to cancel another action.");
                 break;
 
             default:
