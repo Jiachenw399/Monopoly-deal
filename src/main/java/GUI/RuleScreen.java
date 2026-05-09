@@ -43,43 +43,56 @@ public class RuleScreen {
     }
 
     private void drawBackground(GraphicsContext gc) {
-        gc.clearRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
-        gc.setFill(Color.DARKBLUE);
-        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+        ScreenDrawHelper.drawPageBackground(gc, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+        ScreenDrawHelper.drawPanel(gc, 170, 70, 695, 455);
     }
 
     private void drawTitle(GraphicsContext gc) {
-        gc.setFill(Color.ORANGE);
-        gc.setFont(Font.font("Arial", 36));
+        gc.setFill(ScreenDrawHelper.ACCENT);
+        gc.setFont(Font.font("Arial", 38));
         gc.setTextAlign(TextAlignment.CENTER);
         gc.setTextBaseline(VPos.TOP);
-        gc.fillText("Monopoly Deal Rules", Game.SCREEN_WIDTH / 2, 40);
+        gc.fillText("Monopoly Deal Rules", Game.SCREEN_WIDTH / 2, 105);
+
+        gc.setFill(ScreenDrawHelper.MUTED_TEXT);
+        gc.setFont(Font.font("Arial", 17));
+        gc.fillText("Quick guide for the current local game mode", Game.SCREEN_WIDTH / 2, 153);
     }
 
     private void drawRules(GraphicsContext gc) {
-        double x = 100;
-        double y = 120;
-        double gap = 42;
+        double x = 235;
+        double y = 205;
+        double gap = 37;
 
-        gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", 22));
         gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.TOP);
+        gc.setFont(Font.font("Arial", 19));
 
         for (int i = 0; i < RULES.length; i++) {
+            gc.setFill(i % 2 == 0 ? Color.rgb(255, 255, 255, 0.05) : Color.rgb(255, 255, 255, 0.02));
+            gc.fillRoundRect(x - 18, y + gap * i - 7, 585, 30, 10, 10);
+
+            gc.setFill(ScreenDrawHelper.TEXT);
             gc.fillText(RULES[i], x, y + gap * i);
         }
     }
 
     private void drawFooter(GraphicsContext gc) {
-        gc.setFill(Color.ORANGE);
-        gc.setFont(Font.font("Arial", 24));
+        gc.setFill(ScreenDrawHelper.ACCENT);
+        gc.setFont(Font.font("Arial", 22));
         gc.setTextAlign(TextAlignment.CENTER);
-        gc.fillText("Press ESC to return to main menu", Game.SCREEN_WIDTH / 2, 560);
+        gc.fillText("Press ESC to return to main menu", Game.SCREEN_WIDTH / 2, 555);
     }
 
-    public Canvas getCanvas() {return canvas;}
+    public Canvas getCanvas() {
+        return canvas;
+    }
 
-    public boolean isShow() {return isShow;}
+    public boolean isShow() {
+        return isShow;
+    }
 
-    public void setShow(boolean show) {isShow = show;}
+    public void setShow(boolean show) {
+        isShow = show;
+    }
 }

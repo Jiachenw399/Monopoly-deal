@@ -92,63 +92,76 @@ public class GameScreen {
 
     public void drawBackground() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.clearRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
-        gc.setFill(Color.rgb(25, 34, 55));
-        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+        ScreenDrawHelper.drawPageBackground(gc, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
     }
 
     private void drawCurrentPlayer() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         Player currentPlayer = game.getCurrentPlayer();
 
-        gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", 18));
+        ScreenDrawHelper.drawPanel(gc, 16, 14, 735, 94);
+
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setTextBaseline(VPos.TOP);
 
-        gc.fillText("Current Player: Player " + (game.getCurrentPlayerIndex() + 1), 20, 20);
-        gc.fillText("Played Cards: " + currentPlayer.getUseCardTimes() + "/3", 20, 45);
+        gc.setFill(ScreenDrawHelper.TEXT);
+        gc.setFont(Font.font("Arial", 22));
+        gc.fillText("Player " + (game.getCurrentPlayerIndex() + 1) + "'s Turn", 36, 28);
+
+        ScreenDrawHelper.drawBadge(gc, 36, 62, 145, 28,
+                "Played " + currentPlayer.getUseCardTimes() + "/3",
+                Color.rgb(255, 226, 166));
 
         int completedSets = PlayerInfoHelper.getCompletedSetCount(currentPlayer);
-        gc.setFill(Color.LIGHTGREEN);
-        gc.fillText("Completed Sets: " + completedSets + "/3", 20, 70);
+        ScreenDrawHelper.drawBadge(gc, 195, 62, 155, 28,
+                "Sets " + completedSets + "/3",
+                Color.rgb(167, 243, 208));
 
         if (game.isDiscard()) {
-            gc.setFill(Color.RED);
-            gc.fillText("Discard Phase: You must discard " + (currentPlayer.getHandCards().size() - 7) + " card(s).", 20, 95);
+            gc.setFill(ScreenDrawHelper.DANGER);
+            gc.setFont(Font.font("Arial", 15));
+            gc.fillText("Discard Phase: discard " + (currentPlayer.getHandCards().size() - 7) + " card(s)", 370, 67);
         } else {
-            gc.setFill(Color.LIGHTYELLOW);
-            gc.fillText("Click a hand card to play it. Press END TURN button to finish.", 20, 95);
+            gc.setFill(ScreenDrawHelper.MUTED_TEXT);
+            gc.setFont(Font.font("Arial", 15));
+            gc.fillText("Click a hand card to play it, or press END TURN.", 370, 67);
         }
     }
 
     private void drawDeckInfo() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", 16));
-        gc.fillText("Draw Pile: " + game.getDrawCards().getDrawPile().size(), 780, 20);
-        gc.fillText("Discard Pile: " + game.getDrawCards().getDiscardPile().size(), 780, 45);
+        ScreenDrawHelper.drawPanel(gc, 770, 16, 240, 70);
+
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.TOP);
+        gc.setFont(Font.font("Arial", 15));
+
+        gc.setFill(ScreenDrawHelper.MUTED_TEXT);
+        gc.fillText("Draw Pile", 792, 29);
+        gc.fillText("Discard Pile", 792, 55);
+
+        gc.setFill(ScreenDrawHelper.TEXT);
+        gc.setFont(Font.font("Arial", 17));
+        gc.fillText(String.valueOf(game.getDrawCards().getDrawPile().size()), 920, 27);
+        gc.fillText(String.valueOf(game.getDrawCards().getDiscardPile().size()), 920, 53);
     }
 
     private void drawBankCards() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         Player currentPlayer = game.getCurrentPlayer();
 
-        gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", 18));
-        gc.fillText("Bank Area", 20, 115);
+        ScreenDrawHelper.drawPanel(gc, 16, 118, 735, 122);
+        ScreenDrawHelper.drawSectionTitle(gc, "Bank Area", 32, 132);
 
-        double x = 20;
-        double y = 145;
+        double x = 32;
+        double y = 160;
 
-        int total = 0;
-        for (Card card : currentPlayer.getBankCards()) {
-            total += card.getValue();
-        }
+        int total = PlayerInfoHelper.getBankTotal(currentPlayer);
 
-        gc.setFont(Font.font("Arial", 16));
-        gc.fillText("Total Money: " + total + "M", 120, 115);
+        gc.setFont(Font.font("Arial", 15));
+        gc.setFill(ScreenDrawHelper.ACCENT);
+        gc.fillText("Total Money: " + total + "M", 135, 134);
 
         int index = 0;
         for (Card card : currentPlayer.getBankCards()) {
@@ -161,10 +174,8 @@ public class GameScreen {
         GraphicsContext gc = canvas.getGraphicsContext2D();
         Player currentPlayer = game.getCurrentPlayer();
 
-        gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", 18));
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.fillText("Property Area", 20, 255);
+        ScreenDrawHelper.drawPanel(gc, 16, 250, 735, 128);
+        ScreenDrawHelper.drawSectionTitle(gc, "Property Area", 32, 264);
 
         int index = 0;
         for (PropertiesCards card : currentPlayer.getPropertyCards()) {
@@ -174,7 +185,7 @@ public class GameScreen {
             String colorText = card.getCurrentColor() == null ? "NO COLOR" : card.getCurrentColor().name();
 
             if (card == selectedWildCard) {
-                gc.setStroke(Color.YELLOW);
+                gc.setStroke(ScreenDrawHelper.ACCENT);
                 gc.setLineWidth(4);
                 gc.strokeRoundRect(x - 3, y - 3, smallCardWidth + 6, smallCardHeight + 6, 12, 12);
                 gc.setLineWidth(1);
@@ -298,8 +309,9 @@ public class GameScreen {
         ArrayList<Card> handCards = currentPlayer.getHandCards();
 
         double titleY = Game.SCREEN_HEIGHT - 180;
+        ScreenDrawHelper.drawPanel(gc, 16, titleY - 14, 745, 165);
 
-        gc.setFill(Color.WHITE);
+        gc.setFill(ScreenDrawHelper.TEXT);
         gc.setFont(Font.font("Arial", 18));
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setTextBaseline(VPos.TOP);
@@ -391,14 +403,18 @@ public class GameScreen {
         }
 
         GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.setFill(Color.rgb(0, 0, 0, 0.7));
-        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+        ScreenDrawHelper.drawOverlay(gc);
+        ScreenDrawHelper.drawPanel(gc, 275, 220, 485, 155);
 
-        gc.setFill(Color.GOLD);
+        gc.setFill(ScreenDrawHelper.ACCENT);
         gc.setFont(Font.font("Arial", 42));
         gc.setTextAlign(TextAlignment.CENTER);
         gc.setTextBaseline(VPos.CENTER);
-        gc.fillText("Player " + (game.getCurrentPlayerIndex() + 1) + " Wins!", Game.SCREEN_WIDTH / 2, Game.SCREEN_HEIGHT / 2);
+        gc.fillText("Player " + (game.getCurrentPlayerIndex() + 1) + " Wins!", Game.SCREEN_WIDTH / 2, 285);
+
+        gc.setFill(ScreenDrawHelper.MUTED_TEXT);
+        gc.setFont(Font.font("Arial", 17));
+        gc.fillText("Congratulations!", Game.SCREEN_WIDTH / 2, 332);
     }
 
 

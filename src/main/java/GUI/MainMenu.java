@@ -22,6 +22,7 @@ public class MainMenu {
 
         drawBackground(gc);
         drawMenuText(gc);
+        drawMenuCards(gc);
     }
 
     public void clear() {
@@ -30,23 +31,51 @@ public class MainMenu {
     }
 
     private void drawBackground(GraphicsContext gc) {
-        gc.clearRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
-        gc.setFill(Color.DARKBLUE);
-        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+        ScreenDrawHelper.drawPageBackground(gc, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+
+        gc.setFill(Color.rgb(255, 184, 77, 0.08));
+        gc.fillRoundRect(220, 80, 595, 430, 36, 36);
+
+        gc.setStroke(Color.rgb(255, 255, 255, 0.15));
+        gc.strokeRoundRect(220, 80, 595, 430, 36, 36);
     }
 
     private void drawMenuText(GraphicsContext gc) {
         gc.setTextAlign(TextAlignment.CENTER);
         gc.setTextBaseline(VPos.CENTER);
 
-        gc.setFill(Color.ORANGE);
-        gc.setFont(new Font("Comic Sans MS", 48));
-        gc.fillText("Welcome to Monopoly Deal!!💰", Game.SCREEN_WIDTH / 2, Game.SCREEN_HEIGHT / 15);
+        gc.setFill(ScreenDrawHelper.ACCENT);
+        gc.setFont(new Font("Arial", 48));
+        gc.fillText("Monopoly Deal", Game.SCREEN_WIDTH / 2, 135);
 
-        gc.setFont(new Font("Comic Sans MS", 34));
-        gc.fillText("To start a new game press A", Game.SCREEN_WIDTH / 2, 1.5 * Game.SCREEN_HEIGHT / 4.3);
-        gc.fillText("To see the game rules press N", Game.SCREEN_WIDTH / 2, 2.3 * Game.SCREEN_HEIGHT / 4.3);
-        gc.fillText("To exit press X", Game.SCREEN_WIDTH / 2, 3.1 * Game.SCREEN_HEIGHT / 4.3);
+        gc.setFill(ScreenDrawHelper.MUTED_TEXT);
+        gc.setFont(new Font("Arial", 18));
+        gc.fillText("Build property sets, collect rent, and win the deal.", Game.SCREEN_WIDTH / 2, 180);
+    }
+
+    private void drawMenuCards(GraphicsContext gc) {
+        drawMenuOption(gc, 365, 235, "A", "Start New Game");
+        drawMenuOption(gc, 365, 310, "N", "View Game Rules");
+        drawMenuOption(gc, 365, 385, "X", "Exit Game");
+    }
+
+    private void drawMenuOption(GraphicsContext gc, double x, double y, String key, String text) {
+        ScreenDrawHelper.drawPanel(gc, x, y, 305, 52);
+
+        gc.setFill(ScreenDrawHelper.ACCENT);
+        gc.fillRoundRect(x + 18, y + 11, 46, 30, 10, 10);
+
+        gc.setFill(Color.rgb(34, 26, 10));
+        gc.setFont(Font.font("Arial", 18));
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.CENTER);
+        gc.fillText(key, x + 41, y + 26);
+
+        gc.setFill(ScreenDrawHelper.TEXT);
+        gc.setFont(Font.font("Arial", 18));
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.fillText(text, x + 82, y + 26);
+        gc.setTextBaseline(VPos.TOP);
     }
 
     public Canvas getCanvas() {

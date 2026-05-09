@@ -60,16 +60,16 @@ public class PlayerViewPanel {
         double y = BUTTON_Y + playerIndex * (BUTTON_HEIGHT + BUTTON_GAP);
 
         if (selected) {
-            gc.setFill(Color.LIGHTGREEN);
+            gc.setFill(ScreenDrawHelper.ACCENT);
         } else {
-            gc.setFill(Color.LIGHTGRAY);
+            gc.setFill(Color.rgb(42, 54, 78, 0.92));
         }
 
-        gc.fillRoundRect(BUTTON_X, y, BUTTON_WIDTH, BUTTON_HEIGHT, 10, 10);
-        gc.setStroke(Color.BLACK);
-        gc.strokeRoundRect(BUTTON_X, y, BUTTON_WIDTH, BUTTON_HEIGHT, 10, 10);
+        gc.fillRoundRect(BUTTON_X, y, BUTTON_WIDTH, BUTTON_HEIGHT, 12, 12);
+        gc.setStroke(Color.rgb(255, 255, 255, selected ? 0.45 : 0.18));
+        gc.strokeRoundRect(BUTTON_X, y, BUTTON_WIDTH, BUTTON_HEIGHT, 12, 12);
 
-        gc.setFill(Color.BLACK);
+        gc.setFill(selected ? Color.rgb(34, 26, 10) : ScreenDrawHelper.TEXT);
         gc.setFont(Font.font("Arial", 14));
         gc.setTextAlign(TextAlignment.CENTER);
         gc.setTextBaseline(VPos.CENTER);
@@ -77,18 +77,14 @@ public class PlayerViewPanel {
     }
 
     private static void drawInfoBox(GraphicsContext gc) {
-        gc.setFill(Color.rgb(240, 240, 240));
-        gc.fillRoundRect(BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT, 15, 15);
-
-        gc.setStroke(Color.BLACK);
-        gc.strokeRoundRect(BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT, 15, 15);
+        ScreenDrawHelper.drawLightPanel(gc, BOX_X, BOX_Y, BOX_WIDTH, BOX_HEIGHT);
     }
 
     private static void drawBasicPlayerInfo(GraphicsContext gc, Player viewedPlayer, int viewedPlayerIndex) {
         double textX = BOX_X + 10;
         double textY = BOX_Y + 10;
 
-        gc.setFill(Color.BLACK);
+        gc.setFill(Color.rgb(30, 35, 48));
         gc.setFont(Font.font("Arial", 15));
         gc.setTextAlign(TextAlignment.LEFT);
         gc.setTextBaseline(VPos.TOP);
@@ -96,10 +92,10 @@ public class PlayerViewPanel {
         gc.fillText("Viewing: P" + (viewedPlayerIndex + 1), textX, textY);
         gc.fillText("Hand: " + viewedPlayer.getHandCards().size(), textX, textY + 25);
 
-        gc.setFill(Color.GREEN);
+        gc.setFill(Color.rgb(36, 150, 92));
         gc.fillText("Sets: " + PlayerInfoHelper.getCompletedSetCount(viewedPlayer) + "/3", textX, textY + 50);
 
-        gc.setFill(Color.BLACK);
+        gc.setFill(Color.rgb(30, 35, 48));
         gc.fillText("Bank: " + PlayerInfoHelper.getBankTotal(viewedPlayer) + "M", textX, textY + 75);
     }
 
@@ -108,16 +104,18 @@ public class PlayerViewPanel {
         double textY = BOX_Y + 10;
         double moneyY = textY + 128;
 
-        gc.setFill(Color.BLACK);
+        gc.setFill(Color.rgb(30, 35, 48));
         gc.setFont(Font.font("Arial", 13));
         gc.fillText("Money Cards:", textX, textY + 105);
 
         if (viewedPlayer.getBankCards().isEmpty()) {
+            gc.setFill(Color.GRAY);
             gc.fillText("None", textX, moneyY);
             return;
         }
 
         String moneyText = buildMoneyText(viewedPlayer);
+        gc.setFill(Color.rgb(92, 73, 22));
         gc.fillText(moneyText, textX, moneyY);
 
         if (viewedPlayer.getBankCards().size() > 6) {
@@ -143,7 +141,7 @@ public class PlayerViewPanel {
 
     private static void drawPropertySetPreview(GraphicsContext gc, Player viewedPlayer) {
         gc.setFont(Font.font("Arial", 14));
-        gc.setFill(Color.BLACK);
+        gc.setFill(Color.rgb(30, 35, 48));
         gc.fillText("Property Sets:", BOX_X + 10, BOX_Y + 190);
 
         double leftX = BOX_X + 10;
@@ -171,9 +169,9 @@ public class PlayerViewPanel {
         int need = color.getAmountToCompleteSet();
 
         if (current >= need) {
-            gc.setFill(Color.GREEN);
+            gc.setFill(Color.rgb(36, 150, 92));
         } else {
-            gc.setFill(Color.BLACK);
+            gc.setFill(Color.rgb(50, 56, 70));
         }
 
         gc.setFont(Font.font("Arial", 10));
