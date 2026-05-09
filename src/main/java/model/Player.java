@@ -111,18 +111,6 @@ public class Player {
         return bestCombination;
     }
 
-    public void putCard(Card card) {
-        switch (card) {
-            case MoneyCards moneyCards -> putMoneyCard(moneyCards);
-            case PropertiesCards propertiesCards -> putPropertyCard(propertiesCards);
-            case ActionCards actionCards -> putActionCard(actionCards);
-            case null, default -> {
-                return;
-            }
-        }
-        UseCardTimes++;
-    }//合并一下出牌功能
-
     public void putMoneyCard(Card card) {
         if(card.getClass().equals(PropertiesCards.class)){
             return;
@@ -217,27 +205,6 @@ public class Player {
 
     public boolean canUseRentColor(PropertyColor color) {
         return hasPropertyColor(color);
-    }
-
-    public void playSelectedTwoColorRent(ActionCards card, PropertyColor color) {
-        if (card == null || color == null) {
-            return;
-        }
-
-        if (!HandCards.contains(card)) {
-            return;
-        }
-
-        if (!hasPropertyColor(color)) {
-            return;
-        }
-
-        HandCards.remove(card);
-        drawCardsAndDiscardPile.getDiscardPile().add(card);
-
-        chargeRentFromAllPlayers(color, false);
-
-        UseCardTimes++;
     }
     
     private ArrayList<PropertiesCards> findFirstCompleteSet(Player target) {
@@ -502,14 +469,12 @@ public class Player {
         int completedSets = 0;
         for (PropertyColor color : colorCount.keySet()) {
             int count = colorCount.get(color);
-            // 关键：判断是否达到该颜色需要的数量
             if (count >= color.getAmountToCompleteSet()) {
                 completedSets++;
             }
         }
-        // Monopoly Deal规则：3套获胜
         return completedSets >= 3;
-    }//这个方法 大概没问题了
+    }
 
 
     public boolean isOnTurn() {
@@ -526,20 +491,5 @@ public class Player {
 
     public void setUseCardTimes(int useCardTimes) {
         UseCardTimes = useCardTimes;
-    }
-
-    public void printAllCardsOfHands(){
-        int i = 1;
-        System.out.println("To end a turn, please enter 0");
-        for (Card handCard : HandCards) {
-            if (handCard instanceof MoneyCards) {
-                System.out.println(i+". Money Card: " + handCard.getValue()+ "M$ ");
-            }else if(handCard instanceof PropertiesCards){
-                System.out.println(i+". Properties Card: " + handCard.getValue()+ "M$ "+((PropertiesCards) handCard).getType());
-            }else if(handCard instanceof ActionCards){
-                System.out.println(i+". Action Card: "+ handCard.getValue()+ "M$ "+((ActionCards) handCard).getActionCardType());
-            }
-            i+=1;
-        }
     }
 }

@@ -16,19 +16,15 @@ public class GameScreen {
     private Canvas canvas;
     private Game game;
     private boolean isShow;
-    private ActionCards pendingSlyDealCard = null;
-    private double slyPanelX = 180;
-    private double slyPanelY = 110;
-    private double slyCardWidth = 90;
-    private double slyCardHeight = 120;
-    private double slyGap = 15;
-    private ActionCards pendingTwoColorRentCard = null;
+    private SlyDealPanel slyDealPanel;
+    private DebtCollectorPanel debtCollectorPanel;
+    private DealBreakerPanel dealBreakerPanel;
+    private TwoColorRentPanel twoColorRentPanel;
 
     private ActionCards pendingMultipleColorRentCard = null;
     private Player selectedMultipleColorRentTarget = null;
     private PropertyColor selectedMultipleColorRentColor = null;
 
-    private boolean useDoubleRentForTwoColorRent = false;
     private boolean useDoubleRentForMultipleColorRent = false;
 
     private double multiRentPanelX = 230;
@@ -36,26 +32,8 @@ public class GameScreen {
     private double multiRentButtonWidth = 165;
     private double multiRentButtonHeight = 42;
 
-    private ActionCards pendingDealBreakerCard = null;
-    private double dealBreakerPanelX = 180;
-    private double dealBreakerPanelY = 135;
-    private double dealBreakerCardWidth = 130;
-    private double dealBreakerCardHeight = 120;
-    private double dealBreakerGap = 20;
     private ArrayList<Card> selectedPaymentCards = new ArrayList<>();
 
-    private double rentPanelX = 330;
-    private double rentPanelY = 190;
-    private double rentButtonWidth = 170;
-    private double rentButtonHeight = 55;
-
-    private ActionCards pendingDebtCollectorCard = null;
-
-    private double debtPanelX = 170;
-    private double debtPanelY = 135;
-    private double debtPlayerWidth = 160;
-    private double debtPlayerHeight = 230;
-    private double debtPlayerGap = 25;
 
     private PropertiesCards selectedWildCard = null;
     private double propertyStartX = 20;
@@ -74,6 +52,10 @@ public class GameScreen {
     public GameScreen(Game game) {
         this.game = game;
         canvas = new Canvas(Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+        slyDealPanel = new SlyDealPanel(game);
+        debtCollectorPanel = new DebtCollectorPanel(game);
+        dealBreakerPanel = new DealBreakerPanel(game);
+        twoColorRentPanel = new TwoColorRentPanel(game);
         this.isShow = false;
     }
 
@@ -103,7 +85,7 @@ public class GameScreen {
         drawSlyDealSelection();
         drawDebtCollectorSelection();
         drawTwoColorRentSelection();
-        drawDealBreakerSelection();
+        dealBreakerPanel.draw(canvas.getGraphicsContext2D());
         drawPaymentSelection();
         drawMultipleColorRentSelection();
     }
@@ -127,7 +109,7 @@ public class GameScreen {
         gc.fillText("Current Player: Player " + (game.getCurrentPlayerIndex() + 1), 20, 20);
         gc.fillText("Played Cards: " + currentPlayer.getUseCardTimes() + "/3", 20, 45);
 
-        int completedSets = getCompletedSetCount(currentPlayer);
+        int completedSets = PlayerInfoHelper.getCompletedSetCount(currentPlayer);
         gc.setFill(Color.LIGHTGREEN);
         gc.fillText("Completed Sets: " + completedSets + "/3", 20, 70);
 
@@ -170,7 +152,7 @@ public class GameScreen {
 
         int index = 0;
         for (Card card : currentPlayer.getBankCards()) {
-            drawSmallCard(gc, x + index * 65, y, "Money", card.getValue() + "M", Color.GOLD);
+            ScreenDrawHelper.drawSmallCard(gc, x + index * 65, y, "Money", card.getValue() + "M", Color.GOLD);
             index++;
         }
     }
@@ -198,7 +180,7 @@ public class GameScreen {
                 gc.setLineWidth(1);
             }
 
-            drawSmallCard(gc, x, y, "Property", colorText, Color.LIGHTBLUE);
+            ScreenDrawHelper.drawSmallCard(gc, x, y, "Property", colorText, Color.LIGHTBLUE);
 
             if (card.isWildCard()) {
                 gc.setFill(Color.RED);
@@ -378,325 +360,30 @@ public class GameScreen {
         gc.fillText(value, x + cardWidth / 2, y + 50);
 
         gc.setFont(Font.font("Arial", 10));
-        drawWrappedText(gc, name, x + 6, y + 70, cardWidth - 12, 12);
+        ScreenDrawHelper.drawWrappedText(gc, name, x + 6, y + 70, cardWidth - 12, 12);
     }
 
     private void drawPlayerViewButtons() {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-
-        double x = 760;
-        double y = 90;
-        double w = 100;
-        double h = 35;
-        double gap = 10;
-
-        for (int i = 0; i < game.getPlayers().size(); i++) {
-            if (i == viewedPlayerIndex) {
-                gc.setFill(Color.LIGHTGREEN);
-            } else {
-                gc.setFill(Color.LIGHTGRAY);
-            }
-
-            gc.fillRoundRect(x, y + i * (h + gap), w, h, 10, 10);
-            gc.setStroke(Color.BLACK);
-            gc.strokeRoundRect(x, y + i * (h + gap), w, h, 10, 10);
-
-            gc.setFill(Color.BLACK);
-            gc.setFont(Font.font("Arial", 14));
-            gc.setTextAlign(TextAlignment.CENTER);
-            gc.setTextBaseline(VPos.CENTER);
-            gc.fillText("PLAYER " + (i + 1), x + w / 2, y + i * (h + gap) + h / 2);
-        }
-
-        gc.setTextBaseline(VPos.TOP);
+        PlayerViewPanel.drawPlayerViewButtons(canvas.getGraphicsContext2D(), game, viewedPlayerIndex);
     }
-
-    private void drawHotelIcon(GraphicsContext gc, double x, double y) {
-        gc.setFill(Color.DARKBLUE);
-        gc.fillRect(x + 2, y + 2, 14, 14);
-
-        gc.setFill(Color.LIGHTBLUE);
-        gc.fillRect(x + 5, y + 5, 3, 3);
-        gc.fillRect(x + 10, y + 5, 3, 3);
-        gc.fillRect(x + 5, y + 10, 3, 3);
-        gc.fillRect(x + 10, y + 10, 3, 3);
-
-        gc.setStroke(Color.BLACK);
-        gc.strokeRect(x + 2, y + 2, 14, 14);
-    }
-
-    private void drawHouseIcon(GraphicsContext gc, double x, double y) {
-        gc.setFill(Color.DARKRED);
-        gc.fillPolygon(
-                new double[]{x, x + 8, x + 16},
-                new double[]{y + 8, y, y + 8},
-                3
-        );
-
-        gc.setFill(Color.RED);
-        gc.fillRect(x + 2, y + 8, 12, 8);
-
-        gc.setStroke(Color.BLACK);
-        gc.strokePolygon(
-                new double[]{x, x + 8, x + 16},
-                new double[]{y + 8, y, y + 8},
-                3
-        );
-        gc.strokeRect(x + 2, y + 8, 12, 8);
-    }
-
     private void drawViewedPlayerInfo() {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-
-        if (viewedPlayerIndex < 0 || viewedPlayerIndex >= game.getPlayers().size()) {
-            return;
-        }
-
-        Player viewedPlayer = game.getPlayers().get(viewedPlayerIndex);
-
-        double boxX = 865;
-        double boxY = 85;
-        double boxW = 160;
-        double boxH = 430;
-
-        gc.setFill(Color.rgb(240, 240, 240));
-        gc.fillRoundRect(boxX, boxY, boxW, boxH, 15, 15);
-
-        gc.setStroke(Color.BLACK);
-        gc.strokeRoundRect(boxX, boxY, boxW, boxH, 15, 15);
-
-        gc.setFill(Color.BLACK);
-        gc.setFont(Font.font("Arial", 15));
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.TOP);
-
-        double textX = boxX + 10;
-        double textY = boxY + 10;
-
-        gc.fillText("Viewing: P" + (viewedPlayerIndex + 1), textX, textY);
-        gc.fillText("Hand: " + viewedPlayer.getHandCards().size(), textX, textY + 25);
-
-        int completedSets = getCompletedSetCount(viewedPlayer);
-        gc.setFill(Color.GREEN);
-        gc.fillText("Sets: " + completedSets + "/3", textX, textY + 50);
-
-        int bankTotal = 0;
-        for (Card card : viewedPlayer.getBankCards()) {
-            bankTotal += card.getValue();
-        }
-
-        gc.setFill(Color.BLACK);
-        gc.fillText("Bank: " + bankTotal + "M", textX, textY + 75);
-
-        gc.setFont(Font.font("Arial", 13));
-        gc.fillText("Money Cards:", textX, textY + 105);
-
-        double moneyY = textY + 128;
-        int moneyCount = 0;
-
-        if (viewedPlayer.getBankCards().isEmpty()) {
-            gc.fillText("None", textX, moneyY);
-        } else {
-            String moneyText = "";
-
-            for (Card card : viewedPlayer.getBankCards()) {
-                moneyText += card.getValue() + "M ";
-                moneyCount++;
-
-                if (moneyCount >= 6) {
-                    break;
-                }
-            }
-
-            gc.fillText(moneyText, textX, moneyY);
-
-            if (viewedPlayer.getBankCards().size() > 6) {
-                gc.fillText("...", textX, moneyY + 18);
-            }
-        }
-
-        gc.setFont(Font.font("Arial", 14));
-        gc.setFill(Color.BLACK);
-        gc.fillText("Property Sets:", textX, boxY + 190);
-
-        double leftX = boxX + 10;
-        double rightX = boxX + 85;
-        double startY = boxY + 220;
-        double lineGap = 30;
-
-        PropertyColor[] colors = PropertyColor.values();
-
-        for (int i = 0; i < colors.length; i++) {
-            PropertyColor color = colors[i];
-
-            int current = getPropertyCountByCurrentColor(viewedPlayer, color);
-            int need = color.getAmountToCompleteSet();
-
-            boolean hasHouse = false;
-            boolean hasHotel = false;
-
-            for (PropertiesCards card : viewedPlayer.getPropertyCards()) {
-                if (card.getCurrentColor() == color) {
-                    if (card.hasHouse()) {
-                        hasHouse = true;
-                    }
-
-                    if (card.hasHotel()) {
-                        hasHotel = true;
-                    }
-                }
-            }
-
-            double x;
-            double y;
-
-            if (i < 5) {
-                x = leftX;
-                y = startY + i * lineGap;
-            } else {
-                x = rightX;
-                y = startY + (i - 5) * lineGap;
-            }
-
-            if (current >= need) {
-                gc.setFill(Color.GREEN);
-            } else {
-                gc.setFill(Color.BLACK);
-            }
-
-            gc.setFont(Font.font("Arial", 10));
-
-            String shortName = getShortColorName(color);
-            gc.fillText(shortName + ": " + current + "/" + need, x, y);
-
-            if (hasHotel) {
-                drawHotelIcon(gc, x + 45, y - 2);
-            } else if (hasHouse) {
-                drawHouseIcon(gc, x + 45, y - 2);
-            }
-        }
+        PlayerViewPanel.drawViewedPlayerInfo(canvas.getGraphicsContext2D(), game, viewedPlayerIndex);
     }
-
-    private String getShortColorName(PropertyColor color) {
-        switch (color) {
-            case DARK_BLUE:
-                return "D.BLUE";
-            case ORANGE:
-                return "ORANGE";
-            case BLACK:
-                return "BLACK";
-            case RED:
-                return "RED";
-            case DARK_GREEN:
-                return "D.GREEN";
-            case BROWN:
-                return "BROWN";
-            case PINK:
-                return "PINK";
-            case LIGHT_BLUE:
-                return "L.BLUE";
-            case LIGHT_GREEN:
-                return "L.GREEN";
-            case YELLOW:
-                return "YELLOW";
-            default:
-                return color.name();
-        }
-    }
-
-    private int getPropertyCountByCurrentColor(Player player, PropertyColor color) {
-        int count = 0;
-
-        for (PropertiesCards card : player.getPropertyCards()) {
-            PropertyColor currentColor = card.getCurrentColor();
-
-            if (currentColor != null && currentColor == color) {
-                count++;
-            }
-        }
-
-        return count;
-    }
-
-    private int getCompletedSetCount(Player player) {
-        int completedSets = 0;
-
-        for (PropertyColor color : PropertyColor.values()) {
-            int current = 0;
-
-            for (PropertiesCards card : player.getPropertyCards()) {
-                PropertyColor currentColor = card.getCurrentColor();
-
-                if (currentColor != null && currentColor == color) {
-                    current++;
-                }
-            }
-
-            if (current >= color.getAmountToCompleteSet()) {
-                completedSets++;
-            }
-        }
-
-        return completedSets;
-    }
-
     public int getClickedPlayerViewButtonIndex(double mouseX, double mouseY) {
-        double x = 760;
-        double y = 90;
-        double w = 100;
-        double h = 35;
-        double gap = 10;
-
-        for (int i = 0; i < game.getPlayers().size(); i++) {
-            double buttonY = y + i * (h + gap);
-
-            if (mouseX >= x && mouseX <= x + w && mouseY >= buttonY && mouseY <= buttonY + h) {
-                return i;
-            }
-        }
-
-        return -1;
+        return PlayerViewPanel.getClickedPlayerViewButtonIndex(game, mouseX, mouseY);
     }
-
     public void setViewedPlayerIndex(int viewedPlayerIndex) {
         this.viewedPlayerIndex = viewedPlayerIndex;
     }
 
-    private void drawSmallCard(GraphicsContext gc, double x, double y, String type, String text, Color color) {
-        gc.setFill(color);
-        gc.fillRoundRect(x, y, 60, 85, 12, 12);
-
-        gc.setStroke(Color.BLACK);
-        gc.strokeRoundRect(x, y, 60, 85, 12, 12);
-
-        gc.setFill(Color.BLACK);
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setFont(Font.font("Arial", 10));
-        gc.fillText(type, x + 30, y + 15);
-        drawWrappedText(gc, text, x + 5, y + 35, 50, 11);
-    }
 
     private void drawButtons() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
 
-        drawButton(gc, 820, 520, 170, 40, "END TURN");
-        drawButton(gc, 820, 570, 170, 40, "BACK MENU");
+        ScreenDrawHelper.drawButton(gc, 820, 520, 170, 40, "END TURN");
+        ScreenDrawHelper.drawButton(gc, 820, 570, 170, 40, "BACK MENU");
     }
 
-    private void drawButton(GraphicsContext gc, double x, double y, double w, double h, String text) {
-        gc.setFill(Color.ORANGE);
-        gc.fillRoundRect(x, y, w, h, 12, 12);
-
-        gc.setStroke(Color.BLACK);
-        gc.strokeRoundRect(x, y, w, h, 12, 12);
-
-        gc.setFill(Color.BLACK);
-        gc.setFont(Font.font("Arial", 16));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.fillText(text, x + w / 2, y + h / 2);
-        gc.setTextBaseline(VPos.TOP);
-    }
 
     private void drawWinMessage() {
         if (!game.isWin()) {
@@ -714,27 +401,6 @@ public class GameScreen {
         gc.fillText("Player " + (game.getCurrentPlayerIndex() + 1) + " Wins!", Game.SCREEN_WIDTH / 2, Game.SCREEN_HEIGHT / 2);
     }
 
-    private void drawWrappedText(GraphicsContext gc, String text, double x, double y, double maxWidth, double lineHeight) {
-        String[] parts = text.split("_");
-        String line = "";
-        double currentY = y;
-
-        for (String part : parts) {
-            String testLine = line.isEmpty() ? part : line + "_" + part;
-
-            if (testLine.length() > 12) {
-                gc.fillText(line, x + maxWidth / 2, currentY);
-                line = part;
-                currentY += lineHeight;
-            } else {
-                line = testLine;
-            }
-        }
-
-        if (!line.isEmpty()) {
-            gc.fillText(line, x + maxWidth / 2, currentY);
-        }
-    }
 
     public int getClickedHandCardIndex(double mouseX, double mouseY) {
         Player currentPlayer = game.getCurrentPlayer();
@@ -786,152 +452,32 @@ public class GameScreen {
     }
 
     public void startSlyDealSelection(ActionCards card) {
-        pendingSlyDealCard = card;
+        slyDealPanel.startSelection(card);
         selectedWildCard = null;
     }
 
     public void cancelSlyDealSelection() {
-        pendingSlyDealCard = null;
+        slyDealPanel.cancelSelection();
     }
 
     public boolean isSlyDealSelecting() {
-        return pendingSlyDealCard != null;
+        return slyDealPanel.isSelecting();
     }
 
     public ActionCards getPendingSlyDealCard() {
-        return pendingSlyDealCard;
+        return slyDealPanel.getPendingCard();
     }
 
     public boolean isSlyDealCancelClicked(double mouseX, double mouseY) {
-        return isSlyDealSelecting()
-                && mouseX >= 720 && mouseX <= 860
-                && mouseY >= 505 && mouseY <= 545;
+        return slyDealPanel.isCancelClicked(mouseX, mouseY);
     }
 
     public SlyDealChoice getClickedSlyDealChoice(double mouseX, double mouseY) {
-        if (!isSlyDealSelecting()) {
-            return null;
-        }
-
-        int displayIndex = 0;
-
-        for (int playerIndex = 0; playerIndex < game.getPlayers().size(); playerIndex++) {
-            if (playerIndex == game.getCurrentPlayerIndex()) {
-                continue;
-            }
-
-            Player targetPlayer = game.getPlayers().get(playerIndex);
-
-            for (PropertiesCards card : targetPlayer.getPropertyCards()) {
-                if (!canBeStolenBySlyDeal(targetPlayer, card)) {
-                    continue;
-                }
-
-                double x = slyPanelX + (displayIndex % 7) * (slyCardWidth + slyGap);
-                double y = slyPanelY + (displayIndex / 7) * (slyCardHeight + 35);
-
-                if (mouseX >= x && mouseX <= x + slyCardWidth
-                        && mouseY >= y && mouseY <= y + slyCardHeight) {
-                    return new SlyDealChoice(targetPlayer, card);
-                }
-
-                displayIndex++;
-            }
-        }
-
-        return null;
+        return slyDealPanel.getClickedChoice(mouseX, mouseY);
     }
 
     private void drawSlyDealSelection() {
-        if (!isSlyDealSelecting()) {
-            return;
-        }
-
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-
-        gc.setFill(Color.rgb(0, 0, 0, 0.75));
-        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
-
-        gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", 26));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.TOP);
-        gc.fillText("SLY DEAL: Choose one property to steal", Game.SCREEN_WIDTH / 2, 35);
-
-        gc.setFont(Font.font("Arial", 16));
-        gc.fillText("Completed sets cannot be stolen. Wild cards can be stolen if they are not in a completed set.",
-                Game.SCREEN_WIDTH / 2, 70);
-
-        int displayIndex = 0;
-
-        for (int playerIndex = 0; playerIndex < game.getPlayers().size(); playerIndex++) {
-            if (playerIndex == game.getCurrentPlayerIndex()) {
-                continue;
-            }
-
-            Player targetPlayer = game.getPlayers().get(playerIndex);
-
-            for (PropertiesCards card : targetPlayer.getPropertyCards()) {
-                if (!canBeStolenBySlyDeal(targetPlayer, card)) {
-                    continue;
-                }
-
-                double x = slyPanelX + (displayIndex % 7) * (slyCardWidth + slyGap);
-                double y = slyPanelY + (displayIndex / 7) * (slyCardHeight + 35);
-
-                gc.setFill(Color.LIGHTBLUE);
-                gc.fillRoundRect(x, y, slyCardWidth, slyCardHeight, 15, 15);
-
-                gc.setStroke(Color.WHITE);
-                gc.strokeRoundRect(x, y, slyCardWidth, slyCardHeight, 15, 15);
-
-                gc.setFill(Color.BLACK);
-                gc.setFont(Font.font("Arial", 12));
-                gc.setTextAlign(TextAlignment.CENTER);
-                gc.setTextBaseline(VPos.TOP);
-
-                gc.fillText("Player " + (playerIndex + 1), x + slyCardWidth / 2, y + 10);
-                gc.fillText(card.getValue() + "M", x + slyCardWidth / 2, y + 32);
-
-                String colorText = card.getCurrentColor() == null ? "NO COLOR" : card.getCurrentColor().name();
-                drawWrappedText(gc, colorText, x + 8, y + 55, slyCardWidth - 16, 12);
-
-                if (card.isWildCard()) {
-                    gc.setFill(Color.RED);
-                    gc.setFont(Font.font("Arial", 11));
-                    gc.fillText("WILD", x + slyCardWidth / 2, y + 100);
-                }
-
-                displayIndex++;
-            }
-        }
-
-        if (displayIndex == 0) {
-            gc.setFill(Color.LIGHTYELLOW);
-            gc.setFont(Font.font("Arial", 22));
-            gc.setTextAlign(TextAlignment.CENTER);
-            gc.fillText("No property can be stolen.", Game.SCREEN_WIDTH / 2, 280);
-        }
-
-        drawButton(gc, 720, 505, 140, 40, "CANCEL");
-    }
-
-    private boolean canBeStolenBySlyDeal(Player targetPlayer, PropertiesCards card) {
-        PropertyColor color = card.getCurrentColor();
-
-        if (color == null) {
-            return true;
-        }
-
-        int count = 0;
-
-        for (PropertiesCards propertyCard : targetPlayer.getPropertyCards()) {
-            if (propertyCard.getCurrentColor() == color) {
-                count++;
-            }
-        }
-
-        return count < color.getAmountToCompleteSet();
+        slyDealPanel.draw(canvas.getGraphicsContext2D());
     }
 
     public static class SlyDealChoice {
@@ -953,530 +499,98 @@ public class GameScreen {
     }
 
     public void startDebtCollectorSelection(ActionCards card) {
-        pendingDebtCollectorCard = card;
+        debtCollectorPanel.startSelection(card);
         selectedWildCard = null;
     }
 
     public void cancelDebtCollectorSelection() {
-        pendingDebtCollectorCard = null;
+        debtCollectorPanel.cancelSelection();
     }
 
     public boolean isDebtCollectorSelecting() {
-        return pendingDebtCollectorCard != null;
+        return debtCollectorPanel.isSelecting();
     }
 
     public ActionCards getPendingDebtCollectorCard() {
-        return pendingDebtCollectorCard;
+        return debtCollectorPanel.getPendingCard();
     }
 
     public boolean isDebtCollectorCancelClicked(double mouseX, double mouseY) {
-        return isDebtCollectorSelecting()
-                && mouseX >= 720 && mouseX <= 860
-                && mouseY >= 505 && mouseY <= 545;
+        return debtCollectorPanel.isCancelClicked(mouseX, mouseY);
     }
 
     public Player getClickedDebtCollectorTarget(double mouseX, double mouseY) {
-        if (!isDebtCollectorSelecting()) {
-            return null;
-        }
-
-        int displayIndex = 0;
-
-        for (int i = 0; i < game.getPlayers().size(); i++) {
-            if (i == game.getCurrentPlayerIndex()) {
-                continue;
-            }
-
-            double x = debtPanelX + displayIndex * (debtPlayerWidth + debtPlayerGap);
-            double y = debtPanelY;
-
-            if (mouseX >= x && mouseX <= x + debtPlayerWidth
-                    && mouseY >= y && mouseY <= y + debtPlayerHeight) {
-                return game.getPlayers().get(i);
-            }
-
-            displayIndex++;
-        }
-
-        return null;
+        return debtCollectorPanel.getClickedTarget(mouseX, mouseY);
     }
 
     private void drawDebtCollectorSelection() {
-        if (!isDebtCollectorSelecting()) {
-            return;
-        }
-
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-
-        gc.setFill(Color.rgb(0, 0, 0, 0.75));
-        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
-
-        gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", 26));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.TOP);
-        gc.fillText("DEBT COLLECTOR: Choose one player to collect 5M", Game.SCREEN_WIDTH / 2, 45);
-
-        gc.setFont(Font.font("Arial", 16));
-        gc.fillText("Click a player card to collect money. Click CANCEL if you do not want to use this card.",
-                Game.SCREEN_WIDTH / 2, 80);
-
-        int displayIndex = 0;
-
-        for (int i = 0; i < game.getPlayers().size(); i++) {
-            if (i == game.getCurrentPlayerIndex()) {
-                continue;
-            }
-
-            Player player = game.getPlayers().get(i);
-
-            double x = debtPanelX + displayIndex * (debtPlayerWidth + debtPlayerGap);
-            double y = debtPanelY;
-
-            drawDebtCollectorPlayerBox(gc, player, i, x, y);
-
-            displayIndex++;
-        }
-
-        drawButton(gc, 720, 505, 140, 40, "CANCEL");
-    }
-
-    private void drawDebtCollectorPlayerBox(GraphicsContext gc, Player player, int playerIndex, double x, double y) {
-        gc.setFill(Color.LIGHTYELLOW);
-        gc.fillRoundRect(x, y, debtPlayerWidth, debtPlayerHeight, 18, 18);
-
-        gc.setStroke(Color.WHITE);
-        gc.strokeRoundRect(x, y, debtPlayerWidth, debtPlayerHeight, 18, 18);
-
-        gc.setFill(Color.BLACK);
-        gc.setFont(Font.font("Arial", 20));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.TOP);
-        gc.fillText("Player " + (playerIndex + 1), x + debtPlayerWidth / 2, y + 15);
-
-        int bankTotal = 0;
-
-        for (Card card : player.getBankCards()) {
-            bankTotal += card.getValue();
-        }
-
-        gc.setFont(Font.font("Arial", 15));
-        gc.fillText("Bank: " + bankTotal + "M", x + debtPlayerWidth / 2, y + 50);
-        gc.fillText("Properties: " + player.getPropertyCards().size(), x + debtPlayerWidth / 2, y + 75);
-
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setFont(Font.font("Arial", 13));
-
-        double textX = x + 15;
-        double textY = y + 110;
-
-        gc.fillText("Money Cards:", textX, textY);
-
-        if (player.getBankCards().isEmpty()) {
-            gc.fillText("None", textX, textY + 22);
-        } else {
-            String moneyText = "";
-
-            for (int i = 0; i < player.getBankCards().size(); i++) {
-                if (i >= 6) {
-                    moneyText += "...";
-                    break;
-                }
-
-                moneyText += player.getBankCards().get(i).getValue() + "M ";
-            }
-
-            gc.fillText(moneyText, textX, textY + 22);
-        }
-
-        gc.fillText("Property Colors:", textX, textY + 55);
-
-        if (player.getPropertyCards().isEmpty()) {
-            gc.fillText("None", textX, textY + 77);
-        } else {
-            String propertyText = "";
-
-            for (int i = 0; i < player.getPropertyCards().size(); i++) {
-                if (i >= 4) {
-                    propertyText += "...";
-                    break;
-                }
-
-                PropertiesCards card = player.getPropertyCards().get(i);
-
-                if (card.getCurrentColor() == null) {
-                    propertyText += "NO ";
-                } else {
-                    propertyText += getShortColorName(card.getCurrentColor()) + " ";
-                }
-            }
-
-            gc.fillText(propertyText, textX, textY + 77);
-        }
+        debtCollectorPanel.draw(canvas.getGraphicsContext2D());
     }
 
     public void startTwoColorRentSelection(ActionCards card) {
-        pendingTwoColorRentCard = card;
-        useDoubleRentForTwoColorRent = false;
+        twoColorRentPanel.startSelection(card);
         selectedWildCard = null;
     }
 
     public boolean shouldUseDoubleRentForTwoColorRent() {
-        return useDoubleRentForTwoColorRent;
+        return twoColorRentPanel.shouldUseDoubleRent();
     }
 
     public boolean isTwoColorDoubleRentClicked(double mouseX, double mouseY) {
-        return isTwoColorRentSelecting()
-                && game.hasDoubleTheRentCard(game.getCurrentPlayer())
-                && game.getCurrentPlayer().getUseCardTimes() <= 1
-                && mouseX >= 370 && mouseX <= 650
-                && mouseY >= 410 && mouseY <= 445;
+        return twoColorRentPanel.isDoubleRentClicked(mouseX, mouseY);
     }
 
     public void toggleTwoColorDoubleRent() {
-        useDoubleRentForTwoColorRent = !useDoubleRentForTwoColorRent;
+        twoColorRentPanel.toggleDoubleRent();
     }
 
     public void cancelTwoColorRentSelection() {
-        pendingTwoColorRentCard = null;
+        twoColorRentPanel.cancelSelection();
     }
 
     public boolean isTwoColorRentSelecting() {
-        return pendingTwoColorRentCard != null;
+        return twoColorRentPanel.isSelecting();
     }
 
     public ActionCards getPendingTwoColorRentCard() {
-        return pendingTwoColorRentCard;
+        return twoColorRentPanel.getPendingCard();
     }
 
     public boolean isTwoColorRentCancelClicked(double mouseX, double mouseY) {
-        return isTwoColorRentSelecting()
-                && mouseX >= 720 && mouseX <= 860
-                && mouseY >= 505 && mouseY <= 545;
+        return twoColorRentPanel.isCancelClicked(mouseX, mouseY);
     }
 
     public PropertyColor getClickedTwoColorRentColor(double mouseX, double mouseY) {
-        if (!isTwoColorRentSelecting()) {
-            return null;
-        }
-
-        ArrayList<PropertyColor> colors = getTwoRentColors(pendingTwoColorRentCard.getActionCardType());
-
-        for (int i = 0; i < colors.size(); i++) {
-            PropertyColor color = colors.get(i);
-
-            double x = rentPanelX + i * (rentButtonWidth + 40);
-            double y = rentPanelY;
-
-            if (mouseX >= x && mouseX <= x + rentButtonWidth
-                    && mouseY >= y && mouseY <= y + rentButtonHeight) {
-
-                if (currentPlayerHasColor(color)) {
-                    return color;
-                }
-
-                return null;
-            }
-        }
-
-        return null;
+        return twoColorRentPanel.getClickedRentColor(mouseX, mouseY);
     }
 
     private void drawTwoColorRentSelection() {
-        if (!isTwoColorRentSelecting()) {
-            return;
-        }
-
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-
-        gc.setFill(Color.rgb(0, 0, 0, 0.75));
-        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
-
-        gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", 26));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.TOP);
-        gc.fillText("RENT CARD: Choose one color to charge rent", Game.SCREEN_WIDTH / 2, 60);
-
-        gc.setFont(Font.font("Arial", 16));
-        gc.fillText("Grey color means you do not have that property color, so it cannot be selected.",
-                Game.SCREEN_WIDTH / 2, 100);
-
-        ArrayList<PropertyColor> colors = getTwoRentColors(pendingTwoColorRentCard.getActionCardType());
-
-        boolean hasAnyColor = false;
-
-        for (int i = 0; i < colors.size(); i++) {
-            PropertyColor color = colors.get(i);
-
-            double x = rentPanelX + i * (rentButtonWidth + 40);
-            double y = rentPanelY;
-
-            boolean usable = currentPlayerHasColor(color);
-
-            if (usable) {
-                hasAnyColor = true;
-                gc.setFill(Color.LIGHTGREEN);
-            } else {
-                gc.setFill(Color.GRAY);
-            }
-
-            gc.fillRoundRect(x, y, rentButtonWidth, rentButtonHeight, 14, 14);
-
-            gc.setStroke(Color.WHITE);
-            gc.strokeRoundRect(x, y, rentButtonWidth, rentButtonHeight, 14, 14);
-
-            gc.setFill(Color.BLACK);
-            gc.setFont(Font.font("Arial", 16));
-            gc.setTextAlign(TextAlignment.CENTER);
-            gc.setTextBaseline(VPos.CENTER);
-            gc.fillText(color.name(), x + rentButtonWidth / 2, y + rentButtonHeight / 2);
-
-            if (!usable) {
-                gc.setFill(Color.DARKRED);
-                gc.setFont(Font.font("Arial", 12));
-                gc.fillText("Unavailable", x + rentButtonWidth / 2, y + rentButtonHeight + 18);
-            }
-        }
-
-        if (!hasAnyColor) {
-            gc.setFill(Color.LIGHTYELLOW);
-            gc.setFont(Font.font("Arial", 20));
-            gc.setTextAlign(TextAlignment.CENTER);
-            gc.setTextBaseline(VPos.TOP);
-            gc.fillText("You do not have either color. This card cannot be used now.",
-                    Game.SCREEN_WIDTH / 2, 340);
-        }
-
-        drawDoubleRentOption(gc, 370, 410, useDoubleRentForTwoColorRent);
-
-        drawButton(gc, 720, 505, 140, 40, "CANCEL");
-
-        gc.setTextBaseline(VPos.TOP);
-    }
-
-    private void drawDoubleRentOption(GraphicsContext gc, double x, double y, boolean selected) {
-        if (!game.hasDoubleTheRentCard(game.getCurrentPlayer())
-                || game.getCurrentPlayer().getUseCardTimes() > 1) {
-            return;
-        }
-
-        gc.setFill(Color.LIGHTYELLOW);
-        gc.fillRoundRect(x, y, 280, 35, 10, 10);
-
-        gc.setStroke(Color.WHITE);
-        gc.strokeRoundRect(x, y, 280, 35, 10, 10);
-
-        gc.setFill(Color.WHITE);
-        gc.strokeRect(x + 12, y + 8, 18, 18);
-
-        if (selected) {
-            gc.setFill(Color.LIGHTGREEN);
-            gc.fillText("✓", x + 21, y + 8);
-        }
-
-        gc.setFill(Color.BLACK);
-        gc.setFont(Font.font("Arial", 14));
-        gc.setTextAlign(TextAlignment.LEFT);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.fillText("Use DOUBLE THE RENT  ×2", x + 42, y + 17.5);
-
-        gc.setTextBaseline(VPos.TOP);
-    }
-
-    private ArrayList<PropertyColor> getTwoRentColors(ActionCardType type) {
-        ArrayList<PropertyColor> colors = new ArrayList<>();
-
-        switch (type) {
-            case RENT_WITH_RED_AND_YELLOW:
-                colors.add(PropertyColor.RED);
-                colors.add(PropertyColor.YELLOW);
-                break;
-
-            case RENT_WITH_ORANGE_AND_PINK:
-                colors.add(PropertyColor.ORANGE);
-                colors.add(PropertyColor.PINK);
-                break;
-
-            case RENT_WITH_BROWN_AND_LIGHT_BLUE:
-                colors.add(PropertyColor.BROWN);
-                colors.add(PropertyColor.LIGHT_BLUE);
-                break;
-
-            case RENT_WITH_BLACK_AND_LIGHT_GREEN:
-                colors.add(PropertyColor.BLACK);
-                colors.add(PropertyColor.LIGHT_GREEN);
-                break;
-
-            case RENT_WITH_DARK_BLUE_AND_DARK_GREEN:
-                colors.add(PropertyColor.DARK_BLUE);
-                colors.add(PropertyColor.DARK_GREEN);
-                break;
-
-            default:
-                break;
-        }
-
-        return colors;
-    }
-
-    private boolean currentPlayerHasColor(PropertyColor color) {
-        Player currentPlayer = game.getCurrentPlayer();
-
-        for (PropertiesCards card : currentPlayer.getPropertyCards()) {
-            if (card.getCurrentColor() == color) {
-                return true;
-            }
-        }
-
-        return false;
+        twoColorRentPanel.draw(canvas.getGraphicsContext2D());
     }
 
     public void startDealBreakerSelection(ActionCards card) {
-        pendingDealBreakerCard = card;
+        dealBreakerPanel.startSelection(card);
         selectedWildCard = null;
     }
 
     public void cancelDealBreakerSelection() {
-        pendingDealBreakerCard = null;
+        dealBreakerPanel.cancelSelection();
     }
 
     public boolean isDealBreakerSelecting() {
-        return pendingDealBreakerCard != null;
+        return dealBreakerPanel.isSelecting();
     }
 
     public ActionCards getPendingDealBreakerCard() {
-        return pendingDealBreakerCard;
+        return dealBreakerPanel.getPendingCard();
     }
 
     public boolean isDealBreakerCancelClicked(double mouseX, double mouseY) {
-        return isDealBreakerSelecting()
-                && mouseX >= 720 && mouseX <= 860
-                && mouseY >= 505 && mouseY <= 545;
+        return dealBreakerPanel.isCancelClicked(mouseX, mouseY);
     }
 
     public DealBreakerChoice getClickedDealBreakerChoice(double mouseX, double mouseY) {
-        if (!isDealBreakerSelecting()) {
-            return null;
-        }
-
-        int displayIndex = 0;
-
-        for (int playerIndex = 0; playerIndex < game.getPlayers().size(); playerIndex++) {
-            if (playerIndex == game.getCurrentPlayerIndex()) {
-                continue;
-            }
-
-            Player targetPlayer = game.getPlayers().get(playerIndex);
-
-            for (PropertyColor color : PropertyColor.values()) {
-                ArrayList<PropertiesCards> completeSet = getCompleteSetByColor(targetPlayer, color);
-
-                if (completeSet.isEmpty()) {
-                    continue;
-                }
-
-                double x = dealBreakerPanelX + (displayIndex % 5) * (dealBreakerCardWidth + dealBreakerGap);
-                double y = dealBreakerPanelY + (displayIndex / 5) * (dealBreakerCardHeight + 35);
-
-                if (mouseX >= x && mouseX <= x + dealBreakerCardWidth
-                        && mouseY >= y && mouseY <= y + dealBreakerCardHeight) {
-                    return new DealBreakerChoice(targetPlayer, completeSet);
-                }
-
-                displayIndex++;
-            }
-        }
-
-        return null;
-    }
-
-    private void drawDealBreakerSelection() {
-        if (!isDealBreakerSelecting()) {
-            return;
-        }
-
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-
-        gc.setFill(Color.rgb(0, 0, 0, 0.75));
-        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
-
-        gc.setFill(Color.WHITE);
-        gc.setFont(Font.font("Arial", 26));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.TOP);
-        gc.fillText("DEAL BREAKER: Choose one completed set to steal", Game.SCREEN_WIDTH / 2, 35);
-
-        gc.setFont(Font.font("Arial", 16));
-        gc.fillText("Only completed property sets can be stolen.", Game.SCREEN_WIDTH / 2, 70);
-
-        int displayIndex = 0;
-
-        for (int playerIndex = 0; playerIndex < game.getPlayers().size(); playerIndex++) {
-            if (playerIndex == game.getCurrentPlayerIndex()) {
-                continue;
-            }
-
-            Player targetPlayer = game.getPlayers().get(playerIndex);
-
-            for (PropertyColor color : PropertyColor.values()) {
-                ArrayList<PropertiesCards> completeSet = getCompleteSetByColor(targetPlayer, color);
-
-                if (completeSet.isEmpty()) {
-                    continue;
-                }
-
-                double x = dealBreakerPanelX + (displayIndex % 5) * (dealBreakerCardWidth + dealBreakerGap);
-                double y = dealBreakerPanelY + (displayIndex / 5) * (dealBreakerCardHeight + 35);
-
-                gc.setFill(Color.LIGHTGREEN);
-                gc.fillRoundRect(x, y, dealBreakerCardWidth, dealBreakerCardHeight, 15, 15);
-
-                gc.setStroke(Color.WHITE);
-                gc.strokeRoundRect(x, y, dealBreakerCardWidth, dealBreakerCardHeight, 15, 15);
-
-                gc.setFill(Color.BLACK);
-                gc.setFont(Font.font("Arial", 13));
-                gc.setTextAlign(TextAlignment.CENTER);
-                gc.setTextBaseline(VPos.TOP);
-
-                gc.fillText("Player " + (playerIndex + 1), x + dealBreakerCardWidth / 2, y + 10);
-                gc.fillText(color.name(), x + dealBreakerCardWidth / 2, y + 35);
-                gc.fillText(completeSet.size() + "/" + color.getAmountToCompleteSet() + " Completed",
-                        x + dealBreakerCardWidth / 2, y + 60);
-
-                gc.setFont(Font.font("Arial", 11));
-                gc.fillText("Click to steal set", x + dealBreakerCardWidth / 2, y + 90);
-
-                displayIndex++;
-            }
-        }
-
-        if (displayIndex == 0) {
-            gc.setFill(Color.LIGHTYELLOW);
-            gc.setFont(Font.font("Arial", 22));
-            gc.setTextAlign(TextAlignment.CENTER);
-            gc.fillText("No player has a completed property set.", Game.SCREEN_WIDTH / 2, 260);
-            gc.fillText("This Deal Breaker card cannot be used now.", Game.SCREEN_WIDTH / 2, 295);
-        }
-
-        drawButton(gc, 720, 505, 140, 40, "CANCEL");
-    }
-
-    private ArrayList<PropertiesCards> getCompleteSetByColor(Player player, PropertyColor color) {
-        ArrayList<PropertiesCards> result = new ArrayList<>();
-
-        for (PropertiesCards card : player.getPropertyCards()) {
-            if (card.getCurrentColor() == color) {
-                result.add(card);
-            }
-        }
-
-        if (result.size() >= color.getAmountToCompleteSet()) {
-            return result;
-        }
-
-        return new ArrayList<>();
+        return dealBreakerPanel.getClickedChoice(mouseX, mouseY);
     }
 
     public static class DealBreakerChoice {
@@ -1544,15 +658,15 @@ public class GameScreen {
         drawPaymentReceiverPreview(gc, receiver);
 
         if (selectedTotal >= requiredAmount) {
-            drawButton(gc, 330, 555, 160, 40, "CONFIRM PAY");
+            ScreenDrawHelper.drawButton(gc, 330, 555, 160, 40, "CONFIRM PAY");
         } else {
-            drawDisabledButton(gc, 330, 555, 160, 40, "CONFIRM PAY");
+            ScreenDrawHelper.drawDisabledButton(gc, 330, 555, 160, 40, "CONFIRM PAY");
         }
 
-        drawButton(gc, 510, 555, 120, 40, "CLEAR");
+        ScreenDrawHelper.drawButton(gc, 510, 555, 120, 40, "CLEAR");
 
         if (game.canCurrentPaymentUseJustSayNo()) {
-            drawButton(gc, 650, 555, 220, 40, "USE JUST SAY NO");
+            ScreenDrawHelper.drawButton(gc, 650, 555, 220, 40, "USE JUST SAY NO");
         }
     }
 
@@ -1620,7 +734,7 @@ public class GameScreen {
         int row = 0;
 
         for (PropertyColor color : PropertyColor.values()) {
-            int originalCount = getPropertyCountByColor(receiver, color);
+            int originalCount = PlayerInfoHelper.getPropertyCountByColor(receiver, color);
             int addedCount = getSelectedPaymentPropertyCountByColor(color);
             int newCount = originalCount + addedCount;
             int need = color.getAmountToCompleteSet();
@@ -1637,7 +751,7 @@ public class GameScreen {
                 gc.setFill(Color.BLACK);
             }
 
-            String text = getShortColorName(color)
+            String text = PlayerInfoHelper.getShortColorName(color)
                     + ": "
                     + originalCount
                     + " + "
@@ -1662,18 +776,6 @@ public class GameScreen {
             gc.setFill(Color.GRAY);
             gc.fillText("No selected property effect yet.", boxX + 15, startY);
         }
-    }
-
-    private int getPropertyCountByColor(Player player, PropertyColor color) {
-        int count = 0;
-
-        for (PropertiesCards card : player.getPropertyCards()) {
-            if (card.getCurrentColor() == color) {
-                count++;
-            }
-        }
-
-        return count;
     }
 
     private int getSelectedPaymentPropertyCountByColor(PropertyColor color) {
@@ -1711,23 +813,9 @@ public class GameScreen {
         gc.fillText(card.getValue() + "M", x + 34, y + 30);
 
         gc.setFont(Font.font("Arial", 9));
-        drawWrappedText(gc, text, x + 5, y + 52, 58, 11);
+        ScreenDrawHelper.drawWrappedText(gc, text, x + 5, y + 52, 58, 11);
     }
 
-    private void drawDisabledButton(GraphicsContext gc, double x, double y, double w, double h, String text) {
-        gc.setFill(Color.GRAY);
-        gc.fillRoundRect(x, y, w, h, 12, 12);
-
-        gc.setStroke(Color.BLACK);
-        gc.strokeRoundRect(x, y, w, h, 12, 12);
-
-        gc.setFill(Color.DARKGRAY);
-        gc.setFont(Font.font("Arial", 15));
-        gc.setTextAlign(TextAlignment.CENTER);
-        gc.setTextBaseline(VPos.CENTER);
-        gc.fillText(text, x + w / 2, y + h / 2);
-        gc.setTextBaseline(VPos.TOP);
-    }
 
     public boolean isPaymentConfirmClicked(double mouseX, double mouseY) {
         if (!game.isPaymentSelecting()) {
@@ -1990,12 +1078,41 @@ public class GameScreen {
         drawDoubleRentOption(gc, 370, 450, useDoubleRentForMultipleColorRent);
 
         if (canConfirmMultipleColorRent()) {
-            drawButton(gc, 500, 535, 160, 40, "CONFIRM");
+            ScreenDrawHelper.drawButton(gc, 500, 535, 160, 40, "CONFIRM");
         } else {
-            drawDisabledButton(gc, 500, 535, 160, 40, "CONFIRM");
+            ScreenDrawHelper.drawDisabledButton(gc, 500, 535, 160, 40, "CONFIRM");
         }
 
-        drawButton(gc, 690, 535, 140, 40, "CANCEL");
+        ScreenDrawHelper.drawButton(gc, 690, 535, 140, 40, "CANCEL");
+    }
+
+    private void drawDoubleRentOption(GraphicsContext gc, double x, double y, boolean selected) {
+        if (!game.hasDoubleTheRentCard(game.getCurrentPlayer())
+                || game.getCurrentPlayer().getUseCardTimes() > 1) {
+            return;
+        }
+
+        gc.setFill(Color.LIGHTYELLOW);
+        gc.fillRoundRect(x, y, 280, 35, 10, 10);
+
+        gc.setStroke(Color.WHITE);
+        gc.strokeRoundRect(x, y, 280, 35, 10, 10);
+
+        gc.setFill(Color.WHITE);
+        gc.strokeRect(x + 12, y + 8, 18, 18);
+
+        if (selected) {
+            gc.setFill(Color.LIGHTGREEN);
+            gc.fillText("✓", x + 21, y + 8);
+        }
+
+        gc.setFill(Color.BLACK);
+        gc.setFont(Font.font("Arial", 14));
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.CENTER);
+        gc.fillText("Use DOUBLE THE RENT  ×2", x + 42, y + 17.5);
+
+        gc.setTextBaseline(VPos.TOP);
     }
 
     private void drawMultipleColorRentTargets(GraphicsContext gc) {

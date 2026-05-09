@@ -44,12 +44,11 @@ public class DrawPileAndDiscardPile {
 
     private void addMoneyCards(){
         int[] moneyValues = {
-                1,1,1,1,1,1,  // 6张1
-                2,2,2,2,2,    // 5张2
-                3,4,3,4,3,4,  // 3张3 + 3张4
-                5,5,          // 2张5
-                10};           // 1张6
-        // 循环添加所有卡牌
+                1,1,1,1,1,1,  // 1
+                2,2,2,2,2,    // 2
+                3,4,3,4,3,4,  // 3 4
+                5,5,          // 5
+                10};           // 10
         for (int value : moneyValues) {
             DrawPile.add(new MoneyCards(value));
         }

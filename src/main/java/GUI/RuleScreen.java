@@ -77,15 +77,9 @@ public class RuleScreen {
         gc.fillText("Press ESC to return to main menu", Game.SCREEN_WIDTH / 2, 560);
     }
 
-    public Canvas getCanvas() {
-        return canvas;
-    }
+    public Canvas getCanvas() {return canvas;}
 
-    public boolean isShow() {
-        return isShow;
-    }
+    public boolean isShow() {return isShow;}
 
-    public void setShow(boolean show) {
-        isShow = show;
-    }
+    public void setShow(boolean show) {isShow = show;}
 }

@@ -52,15 +52,11 @@ public class GameListener {
             return true;
         }
 
-        if (handleMultipleColorRentSelection(x, y)) {
-            return true;
-        }
-
         if (handleSlyDealSelection(x, y)) {
             return true;
         }
 
-        if (handleDealBreakerSelection(x, y)) {
+        if (handleMultipleColorRentSelection(x, y)) {
             return true;
         }
 
@@ -68,7 +64,64 @@ public class GameListener {
             return true;
         }
 
+        if (handleDealBreakerSelection(x, y)) {
+            return true;
+        }
+
         return handleTwoColorRentSelection(x, y);
+    }
+
+    private boolean handlePaymentSelection(double x, double y) {
+        if (!game.isPaymentSelecting()) {
+            return false;
+        }
+
+        if (gameScreen.isPaymentJustSayNoClicked(x, y)) {
+            game.currentPaymentUseJustSayNo();
+            gameScreen.clearPaymentSelection();
+            return true;
+        }
+
+        if (gameScreen.isPaymentClearClicked(x, y)) {
+            gameScreen.clearPaymentSelection();
+            return true;
+        }
+
+        if (gameScreen.isPaymentConfirmClicked(x, y)) {
+            if (gameScreen.canConfirmPayment()) {
+                game.finishCurrentPayment(gameScreen.getSelectedPaymentCards());
+                gameScreen.clearPaymentSelection();
+            }
+
+            return true;
+        }
+
+        return gameScreen.handlePaymentCardClick(x, y);
+    }
+
+    private boolean handleSlyDealSelection(double x, double y) {
+        if (!gameScreen.isSlyDealSelecting()) {
+            return false;
+        }
+
+        if (gameScreen.isSlyDealCancelClicked(x, y)) {
+            gameScreen.cancelSlyDealSelection();
+            return true;
+        }
+
+        GameScreen.SlyDealChoice choice = gameScreen.getClickedSlyDealChoice(x, y);
+
+        if (choice != null) {
+            game.finishSlyDeal(
+                    gameScreen.getPendingSlyDealCard(),
+                    choice.getTargetPlayer(),
+                    choice.getSelectedCard()
+            );
+
+            gameScreen.cancelSlyDealSelection();
+        }
+
+        return true;
     }
 
     private boolean handleMultipleColorRentSelection(double x, double y) {
@@ -118,32 +171,28 @@ public class GameListener {
         return true;
     }
 
-    private boolean handlePaymentSelection(double x, double y) {
-        if (!game.isPaymentSelecting()) {
+    private boolean handleDebtCollectorSelection(double x, double y) {
+        if (!gameScreen.isDebtCollectorSelecting()) {
             return false;
         }
 
-        if (gameScreen.isPaymentJustSayNoClicked(x, y)) {
-            game.currentPaymentUseJustSayNo();
-            gameScreen.clearPaymentSelection();
+        if (gameScreen.isDebtCollectorCancelClicked(x, y)) {
+            gameScreen.cancelDebtCollectorSelection();
             return true;
         }
 
-        if (gameScreen.isPaymentClearClicked(x, y)) {
-            gameScreen.clearPaymentSelection();
-            return true;
+        Player targetPlayer = gameScreen.getClickedDebtCollectorTarget(x, y);
+
+        if (targetPlayer != null) {
+            game.finishDebtCollector(
+                    gameScreen.getPendingDebtCollectorCard(),
+                    targetPlayer
+            );
+
+            gameScreen.cancelDebtCollectorSelection();
         }
 
-        if (gameScreen.isPaymentConfirmClicked(x, y)) {
-            if (gameScreen.canConfirmPayment()) {
-                game.finishCurrentPayment(gameScreen.getSelectedPaymentCards());
-                gameScreen.clearPaymentSelection();
-            }
-
-            return true;
-        }
-
-        return gameScreen.handlePaymentCardClick(x, y);
+        return true;
     }
 
     private boolean handleDealBreakerSelection(double x, double y) {
@@ -166,55 +215,6 @@ public class GameListener {
             );
 
             gameScreen.cancelDealBreakerSelection();
-        }
-
-        return true;
-    }
-
-    private boolean handleSlyDealSelection(double x, double y) {
-        if (!gameScreen.isSlyDealSelecting()) {
-            return false;
-        }
-
-        if (gameScreen.isSlyDealCancelClicked(x, y)) {
-            gameScreen.cancelSlyDealSelection();
-            return true;
-        }
-
-        GameScreen.SlyDealChoice choice = gameScreen.getClickedSlyDealChoice(x, y);
-
-        if (choice != null) {
-            game.finishSlyDeal(
-                    gameScreen.getPendingSlyDealCard(),
-                    choice.getTargetPlayer(),
-                    choice.getSelectedCard()
-            );
-
-            gameScreen.cancelSlyDealSelection();
-        }
-
-        return true;
-    }
-
-    private boolean handleDebtCollectorSelection(double x, double y) {
-        if (!gameScreen.isDebtCollectorSelecting()) {
-            return false;
-        }
-
-        if (gameScreen.isDebtCollectorCancelClicked(x, y)) {
-            gameScreen.cancelDebtCollectorSelection();
-            return true;
-        }
-
-        Player targetPlayer = gameScreen.getClickedDebtCollectorTarget(x, y);
-
-        if (targetPlayer != null) {
-            game.finishDebtCollector(
-                    gameScreen.getPendingDebtCollectorCard(),
-                    targetPlayer
-            );
-
-            gameScreen.cancelDebtCollectorSelection();
         }
 
         return true;
@@ -332,47 +332,41 @@ public class GameListener {
             return false;
         }
 
-        if (actionCard.getActionCardType() == ActionCardType.SLY_DEAL) {
-            gameScreen.startSlyDealSelection(actionCard);
-            return true;
-        }
+        ActionCardType type = actionCard.getActionCardType();
 
-        if (actionCard.getActionCardType() == ActionCardType.DEBT_COLLECTOR) {
-            gameScreen.startDebtCollectorSelection(actionCard);
-            return true;
-        }
-
-        if (isTwoColorRentCard(actionCard)) {
-            gameScreen.startTwoColorRentSelection(actionCard);
-            return true;
-        }
-
-        if (actionCard.getActionCardType() == ActionCardType.BIRTHDAY) {
-            game.finishBirthday(actionCard);
-            return true;
-        }
-
-        if (actionCard.getActionCardType() == ActionCardType.DEAL_BREAKER) {
-            gameScreen.startDealBreakerSelection(actionCard);
-            return true;
-        }
-
-        if (actionCard.getActionCardType() == ActionCardType.RENT_WITH_MULTIPLE_COLOR) {
-            gameScreen.startMultipleColorRentSelection(actionCard);
-            return true;
-        }
-
-
-        return false;
-    }
-
-    private boolean isTwoColorRentCard(ActionCards card) {
-        ActionCardType type = card.getActionCardType();
-
-        return type == ActionCardType.RENT_WITH_RED_AND_YELLOW
-                || type == ActionCardType.RENT_WITH_ORANGE_AND_PINK
-                || type == ActionCardType.RENT_WITH_BROWN_AND_LIGHT_BLUE
-                || type == ActionCardType.RENT_WITH_BLACK_AND_LIGHT_GREEN
-                || type == ActionCardType.RENT_WITH_DARK_BLUE_AND_DARK_GREEN;
+        return switch (type) {
+            case SLY_DEAL -> {
+                gameScreen.startSlyDealSelection(actionCard);
+                yield true;
+            }
+            case RENT_WITH_MULTIPLE_COLOR -> {
+                gameScreen.startMultipleColorRentSelection(actionCard);
+                yield true;
+            }
+            case HOUSE -> false;
+            case FORCED_DEAL -> false;
+            case BIRTHDAY -> {
+                game.finishBirthday(actionCard);
+                yield true;
+            }
+            case JUST_SAY_NO -> false;
+            case DEBT_COLLECTOR -> {
+                gameScreen.startDebtCollectorSelection(actionCard);
+                yield true;
+            }
+            case DOUBLE_THE_RENT -> false;
+            case HOTEL -> false;
+            case DEAL_BREAKER -> {
+                gameScreen.startDealBreakerSelection(actionCard);
+                yield true;
+            }
+            case RENT_WITH_DARK_BLUE_AND_DARK_GREEN, RENT_WITH_BROWN_AND_LIGHT_BLUE, RENT_WITH_BLACK_AND_LIGHT_GREEN,
+                 RENT_WITH_RED_AND_YELLOW, RENT_WITH_ORANGE_AND_PINK -> {
+                gameScreen.startTwoColorRentSelection(actionCard);
+                yield true;
+            }
+            case PASS_GO -> false;
+            default -> false;
+        };
     }
 }
