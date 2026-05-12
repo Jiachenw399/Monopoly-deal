@@ -238,11 +238,13 @@ public class GameScreen {
             return;
         }
 
+        double labelY = y + smallCardHeight - 20;
+
         if (PlayerInfoHelper.hasHotel(game.getCurrentPlayer(), color)) {
             gc.setFill(Color.DARKBLUE);
             gc.setFont(Font.font("Arial", 10));
             gc.setTextAlign(TextAlignment.CENTER);
-            gc.fillText("HOTEL", x + smallCardWidth / 2, y + smallCardHeight - 6);
+            gc.fillText("HOTEL", x + smallCardWidth / 2, labelY);
             return;
         }
 
@@ -250,7 +252,7 @@ public class GameScreen {
             gc.setFill(Color.DARKGREEN);
             gc.setFont(Font.font("Arial", 10));
             gc.setTextAlign(TextAlignment.CENTER);
-            gc.fillText("HOUSE", x + smallCardWidth / 2, y + smallCardHeight - 6);
+            gc.fillText("HOUSE", x + smallCardWidth / 2, labelY);
         }
     }
 
