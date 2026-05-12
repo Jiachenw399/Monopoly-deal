@@ -35,7 +35,11 @@ public class GameTest {
     public void testEndTurnSwitchPlayer() {
         Game game = new Game();
         game.startGame();
+
         Player firstPlayer = game.getCurrentPlayer();
+
+        game.guiEndTurn();
+
         Player secondPlayer = game.getCurrentPlayer();
 
         assertNotSame(firstPlayer, secondPlayer);
