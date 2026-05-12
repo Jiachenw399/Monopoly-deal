@@ -21,9 +21,7 @@ public class TurnManager {
     }
 
     public void startFirstTurn() {
-        Player currentPlayer = getCurrentPlayer();
-        currentPlayer.setOnTurn(true);
-        currentPlayer.setUseCardTimes(0);
+        startTurn(getCurrentPlayer());
     }
 
     public void startTurn(Player currentPlayer) {
