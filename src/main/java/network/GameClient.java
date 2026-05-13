@@ -34,7 +34,7 @@ public class GameClient {
         ) {
             System.out.println("Connected to server: " + host + ":" + PORT);
             startServerListener(in);
-            System.out.println("Type HELLO, PLAYERS, START_GAME, END_TURN, or QUIT.");
+            System.out.println("Type HELLO, PLAYERS, START_GAME, STATE, PLAY_CARD <number>, DISCARD <number>, PAY B1 P2, JUST_SAY_NO, END_TURN, or QUIT.");
 
             while (true) {
                 System.out.print("> ");
@@ -44,11 +44,19 @@ public class GameClient {
                     break;
                 }
 
-                out.println(new NetworkMessage(input.toUpperCase(), "").encode());
+                out.println(parseInput(input).encode());
             }
         } catch (IOException e) {
             System.out.println("Client error: " + e.getMessage());
         }
+    }
+
+    private NetworkMessage parseInput(String input) {
+        String[] parts = input.trim().split("\\s+", 2);
+        String type = parts[0].toUpperCase();
+        String body = parts.length > 1 ? parts[1].trim() : "";
+
+        return new NetworkMessage(type, body);
     }
 
     private void startServerListener(BufferedReader in) {

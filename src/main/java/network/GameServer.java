@@ -1,7 +1,11 @@
 package network;
 
 import logic.Game;
+import model.ActionCards;
+import model.Card;
+import model.MoneyCards;
 import model.Player;
+import model.PropertiesCards;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -113,7 +117,7 @@ public class GameServer {
         }
 
         gameStarted = true;
-        game = new Game();
+        game = new Game(clients.size());
         game.startGame();
         return true;
     }
@@ -136,17 +140,218 @@ public class GameServer {
         }
 
         game.guiEndTurn();
-        broadcast(new NetworkMessage("GAME_STATE", buildGameStateText()));
+        sendGameStateToAll();
     }
 
-    private synchronized String buildGameStateText() {
+    private synchronized void sendGameStateTo(ClientHandler client) {
+        if (!isGameStarted()) {
+            client.send(new NetworkMessage("SERVER", "Game has not started yet").encode());
+            return;
+        }
+
+        client.send(new NetworkMessage("GAME_STATE", buildGameStateTextForPlayer(client.getPlayerId())).encode());
+    }
+
+    private synchronized void playCardIfValid(ClientHandler requester, String cardNumberText) {
+        if (!isGameStarted()) {
+            requester.send(new NetworkMessage("SERVER", "Game has not started yet").encode());
+            return;
+        }
+
+        int expectedPlayerId = game.getCurrentPlayerIndex() + 1;
+
+        if (requester.getPlayerId() != expectedPlayerId) {
+            requester.send(new NetworkMessage("SERVER", "It is Player " + expectedPlayerId + "'s turn").encode());
+            return;
+        }
+
+        int cardIndex = parseOneBasedCardIndex(cardNumberText);
+
+        if (cardIndex < 0) {
+            requester.send(new NetworkMessage("SERVER", "Use PLAY_CARD <number>, for example PLAY_CARD 1").encode());
+            return;
+        }
+
+        Player player = game.getPlayers().get(requester.getPlayerId() - 1);
+
+        if (cardIndex >= player.getHandCards().size()) {
+            requester.send(new NetworkMessage("SERVER", "No hand card number " + (cardIndex + 1)).encode());
+            return;
+        }
+
+        Card selectedCard = player.getHandCards().get(cardIndex);
+        String selectedCardText = cardToText(selectedCard);
+        boolean success = game.playCard(selectedCard);
+
+        if (!success) {
+            requester.send(new NetworkMessage("SERVER", "Could not play " + selectedCardText).encode());
+            return;
+        }
+
+        broadcast(new NetworkMessage("BROADCAST", "Player " + requester.getPlayerId() + " played " + selectedCardText));
+        sendGameStateToAll();
+    }
+
+    private synchronized void discardIfValid(ClientHandler requester, String cardNumberText) {
+        if (!isGameStarted()) {
+            requester.send(new NetworkMessage("SERVER", "Game has not started yet").encode());
+            return;
+        }
+
+        int expectedPlayerId = game.getCurrentPlayerIndex() + 1;
+
+        if (requester.getPlayerId() != expectedPlayerId) {
+            requester.send(new NetworkMessage("SERVER", "It is Player " + expectedPlayerId + "'s turn").encode());
+            return;
+        }
+
+        int cardIndex = parseOneBasedCardIndex(cardNumberText);
+
+        if (cardIndex < 0) {
+            requester.send(new NetworkMessage("SERVER", "Use DISCARD <number>, for example DISCARD 1").encode());
+            return;
+        }
+
+        Player player = game.getPlayers().get(requester.getPlayerId() - 1);
+
+        if (cardIndex >= player.getHandCards().size()) {
+            requester.send(new NetworkMessage("SERVER", "No hand card number " + (cardIndex + 1)).encode());
+            return;
+        }
+
+        Card selectedCard = player.getHandCards().get(cardIndex);
+        String selectedCardText = cardToText(selectedCard);
+
+        if (!game.discard(selectedCard)) {
+            requester.send(new NetworkMessage("SERVER", "Could not discard " + selectedCardText).encode());
+            return;
+        }
+
+        broadcast(new NetworkMessage("BROADCAST", "Player " + requester.getPlayerId() + " discarded " + selectedCardText));
+        sendGameStateToAll();
+    }
+
+    private synchronized void payIfValid(ClientHandler requester, String paymentText) {
+        if (!isGameStarted()) {
+            requester.send(new NetworkMessage("SERVER", "Game has not started yet").encode());
+            return;
+        }
+
+        if (!game.isPaymentSelecting()) {
+            requester.send(new NetworkMessage("SERVER", "No payment is required now").encode());
+            return;
+        }
+
+        Game.PaymentRequest request = game.getCurrentPaymentRequest();
+        int payerId = game.getPlayers().indexOf(request.getPayer()) + 1;
+
+        if (requester.getPlayerId() != payerId) {
+            requester.send(new NetworkMessage("SERVER", "Player " + payerId + " must pay now").encode());
+            return;
+        }
+
+        ArrayList<Card> selectedCards = parsePaymentCards(request.getPayer(), paymentText);
+
+        if (selectedCards.isEmpty()) {
+            requester.send(new NetworkMessage("SERVER", "Use PAY B1 P2. B means bank card, P means property card").encode());
+            return;
+        }
+
+        if (!game.finishCurrentPayment(selectedCards)) {
+            requester.send(new NetworkMessage("SERVER", "Invalid payment selection").encode());
+            return;
+        }
+
+        broadcast(new NetworkMessage("BROADCAST", "Player " + requester.getPlayerId() + " paid " + game.getCardsValue(selectedCards) + "M"));
+        sendGameStateToAll();
+    }
+
+    private synchronized void justSayNoIfValid(ClientHandler requester) {
+        if (!isGameStarted()) {
+            requester.send(new NetworkMessage("SERVER", "Game has not started yet").encode());
+            return;
+        }
+
+        if (!game.isPaymentSelecting()) {
+            requester.send(new NetworkMessage("SERVER", "No payment is required now").encode());
+            return;
+        }
+
+        Game.PaymentRequest request = game.getCurrentPaymentRequest();
+        int payerId = game.getPlayers().indexOf(request.getPayer()) + 1;
+
+        if (requester.getPlayerId() != payerId) {
+            requester.send(new NetworkMessage("SERVER", "Player " + payerId + " must respond now").encode());
+            return;
+        }
+
+        if (!game.canCurrentPaymentUseJustSayNo()) {
+            requester.send(new NetworkMessage("SERVER", "You do not have Just Say No").encode());
+            return;
+        }
+
+        game.currentPaymentUseJustSayNo();
+        broadcast(new NetworkMessage("BROADCAST", "Player " + requester.getPlayerId() + " used Just Say No"));
+        sendGameStateToAll();
+    }
+
+    private ArrayList<Card> parsePaymentCards(Player payer, String paymentText) {
+        ArrayList<Card> selectedCards = new ArrayList<>();
+        String[] tokens = paymentText.trim().split("[,\\s]+");
+
+        for (String token : tokens) {
+            if (token.length() < 2) {
+                continue;
+            }
+
+            char source = Character.toUpperCase(token.charAt(0));
+            int index = parseOneBasedCardIndex(token.substring(1));
+
+            if (index < 0) {
+                continue;
+            }
+
+            if (source == 'B' && index < payer.getBankCards().size()) {
+                selectedCards.add(payer.getBankCards().get(index));
+            } else if (source == 'P' && index < payer.getPropertyCards().size()) {
+                selectedCards.add(payer.getPropertyCards().get(index));
+            }
+        }
+
+        return selectedCards;
+    }
+
+    private int parseOneBasedCardIndex(String cardNumberText) {
+        try {
+            return Integer.parseInt(cardNumberText.trim()) - 1;
+        } catch (NumberFormatException e) {
+            return -1;
+        }
+    }
+
+    private synchronized void sendGameStateToAll() {
+        if (game == null) {
+            return;
+        }
+
+        for (ClientHandler client : clients) {
+            client.send(new NetworkMessage("GAME_STATE", buildGameStateTextForPlayer(client.getPlayerId())).encode());
+        }
+    }
+
+    private synchronized String buildGameStateTextForPlayer(int playerId) {
         if (game == null) {
             return "NO_GAME";
         }
 
         StringBuilder builder = new StringBuilder();
+        int playerIndex = playerId - 1;
+
+        builder.append("you=").append(playerId);
+        builder.append(";");
         builder.append("currentPlayer=").append(game.getCurrentPlayerIndex() + 1);
         builder.append(";discardPhase=").append(game.isDiscard());
+        appendPaymentState(builder, playerId);
         builder.append(";players=");
 
         for (int i = 0; i < game.getPlayers().size(); i++) {
@@ -163,7 +368,79 @@ public class GameServer {
             builder.append(")");
         }
 
+        if (playerIndex >= 0 && playerIndex < game.getPlayers().size()) {
+            builder.append(";yourHand=");
+            appendCards(builder, game.getPlayers().get(playerIndex).getHandCards());
+            builder.append(";yourBank=");
+            appendCards(builder, game.getPlayers().get(playerIndex).getBankCards());
+            builder.append(";yourProperties=");
+            appendProperties(builder, game.getPlayers().get(playerIndex).getPropertyCards());
+        }
+
         return builder.toString();
+    }
+
+    private void appendPaymentState(StringBuilder builder, int playerId) {
+        builder.append(";payment=");
+
+        if (!game.isPaymentSelecting()) {
+            builder.append("none");
+            return;
+        }
+
+        Game.PaymentRequest request = game.getCurrentPaymentRequest();
+        int receiverId = game.getPlayers().indexOf(request.getReceiver()) + 1;
+        int payerId = game.getPlayers().indexOf(request.getPayer()) + 1;
+
+        builder.append("payer=").append(payerId);
+        builder.append(",receiver=").append(receiverId);
+        builder.append(",amount=").append(request.getAmount());
+
+        if (playerId == payerId) {
+            builder.append(",youMustPay=true");
+            builder.append(",canJustSayNo=").append(game.canCurrentPaymentUseJustSayNo());
+        }
+    }
+
+    private void appendCards(StringBuilder builder, List<? extends Card> cards) {
+        for (int i = 0; i < cards.size(); i++) {
+            if (i > 0) {
+                builder.append(",");
+            }
+
+            builder.append(cardToText(cards.get(i)));
+        }
+    }
+
+    private void appendProperties(StringBuilder builder, List<PropertiesCards> cards) {
+        for (int i = 0; i < cards.size(); i++) {
+            if (i > 0) {
+                builder.append(",");
+            }
+
+            builder.append(propertyToText(cards.get(i)));
+        }
+    }
+
+    private String cardToText(Card card) {
+        if (card instanceof MoneyCards) {
+            return "MONEY_" + card.getValue();
+        }
+
+        if (card instanceof ActionCards actionCard) {
+            return "ACTION_" + actionCard.getActionCardType().name() + "_" + card.getValue();
+        }
+
+        if (card instanceof PropertiesCards propertyCard) {
+            return propertyToText(propertyCard);
+        }
+
+        return "CARD_" + card.getValue();
+    }
+
+    private String propertyToText(PropertiesCards card) {
+        String currentColor = card.getCurrentColor() == null ? "NO_COLOR" : card.getCurrentColor().name();
+        return "PROPERTY_" + card.getType().name() + "_" + currentColor + "_" + card.getValue();
     }
 
     private class ClientHandler extends Thread {
@@ -213,14 +490,24 @@ public class GameServer {
                 broadcast(new NetworkMessage("BROADCAST", "Player " + playerId + " says hello"));
             } else if ("PLAYERS".equals(message.getType())) {
                 send(new NetworkMessage("PLAYER_LIST", getPlayerListText()).encode());
+            } else if ("STATE".equals(message.getType())) {
+                sendGameStateTo(this);
             } else if ("START_GAME".equals(message.getType())) {
                 if (tryStartGame(this)) {
                     broadcast(new NetworkMessage(
                             "GAME_STARTED",
                             "Started with " + getPlayerCount() + " players: " + getPlayerListText()
                     ));
-                    broadcast(new NetworkMessage("GAME_STATE", buildGameStateText()));
+                    sendGameStateToAll();
                 }
+            } else if ("PLAY_CARD".equals(message.getType())) {
+                playCardIfValid(this, message.getBody());
+            } else if ("DISCARD".equals(message.getType())) {
+                discardIfValid(this, message.getBody());
+            } else if ("PAY".equals(message.getType())) {
+                payIfValid(this, message.getBody());
+            } else if ("JUST_SAY_NO".equals(message.getType())) {
+                justSayNoIfValid(this);
             } else if ("END_TURN".equals(message.getType())) {
                 endTurnIfGameStarted(this);
             } else {

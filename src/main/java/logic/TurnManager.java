@@ -43,11 +43,11 @@ public class TurnManager {
         moveToNextPlayer();
     }
 
-    public void discard(Card card) {
+    public boolean discard(Card card) {
         Player currentPlayer = getCurrentPlayer();
 
         if (!canDiscard(currentPlayer, card)) {
-            return;
+            return false;
         }
 
         currentPlayer.getHandCards().remove(card);
@@ -57,6 +57,8 @@ public class TurnManager {
             isDiscard = false;
             moveToNextPlayer();
         }
+
+        return true;
     }
 
     public Player getCurrentPlayer() {

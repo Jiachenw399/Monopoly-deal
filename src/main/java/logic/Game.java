@@ -12,11 +12,15 @@ import java.util.ArrayList;
 public class Game {
     public static final double SCREEN_WIDTH = 1035;
     public static final double SCREEN_HEIGHT = 625;
+    private static final int DEFAULT_PLAYER_COUNT = 4;
+    private static final int MIN_PLAYER_COUNT = 2;
+    private static final int MAX_PLAYER_COUNT = 4;
 
     private final ArrayList<Player> players;
     private final RentCalculator rentCalculator;
     private final CardPlayService cardPlayService;
     private final GameSetupService gameSetupService;
+    private final int playerCount;
 
     private DrawPileAndDiscardPile drawCards;
     private PaymentManager paymentManager;
@@ -26,6 +30,11 @@ public class Game {
     private boolean isWin;
 
     public Game() {
+        this(DEFAULT_PLAYER_COUNT);
+    }
+
+    public Game(int playerCount) {
+        this.playerCount = normalizePlayerCount(playerCount);
         players = new ArrayList<>();
         rentCalculator = new RentCalculator();
         cardPlayService = new CardPlayService();
@@ -35,6 +44,18 @@ public class Game {
         setupNewPlayers();
 
         isWin = false;
+    }
+
+    private int normalizePlayerCount(int playerCount) {
+        if (playerCount < MIN_PLAYER_COUNT) {
+            return MIN_PLAYER_COUNT;
+        }
+
+        if (playerCount > MAX_PLAYER_COUNT) {
+            return MAX_PLAYER_COUNT;
+        }
+
+        return playerCount;
     }
 
     public void startGame() {
@@ -62,7 +83,7 @@ public class Game {
     }
 
     private void setupNewPlayers() {
-        gameSetupService.setupPlayers(players, drawCards);
+        gameSetupService.setupPlayers(players, drawCards, playerCount);
     }
 
     public void startTurn(Player currentPlayer) {
@@ -77,16 +98,18 @@ public class Game {
         turnManager.endTurn();
     }
 
-    public void discard(Card card) {
-        turnManager.discard(card);
+    public boolean discard(Card card) {
+        return turnManager.discard(card);
     }
 
-    public void playCard(Card card) {
+    public boolean playCard(Card card) {
         boolean success = cardPlayService.playCard(getCurrentPlayer(), card);
 
         if (success) {
             checkCurrentPlayerWin();
         }
+
+        return success;
     }
 
     public void finishBirthday(ActionCards birthdayCard) {
@@ -195,12 +218,14 @@ public class Game {
 
     public void currentPaymentUseJustSayNo() {paymentManager.currentPaymentUseJustSayNo();}
 
-    public void finishCurrentPayment(ArrayList<Card> selectedCards) {
+    public boolean finishCurrentPayment(ArrayList<Card> selectedCards) {
         boolean success = paymentManager.finishCurrentPayment(selectedCards);
 
         if (success) {
             checkCurrentPlayerWin();
         }
+
+        return success;
     }
 
     public int getTotalAssetsValue(Player player) {return paymentManager.getTotalAssetsValue(player);}
