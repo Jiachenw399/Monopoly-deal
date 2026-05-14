@@ -112,15 +112,17 @@ public class Game {
         return success;
     }
 
-    public void finishBirthday(ActionCards birthdayCard) {
+    public boolean finishBirthday(ActionCards birthdayCard) {
         boolean success = actionCardService.finishBirthday(getCurrentPlayer(), birthdayCard);
 
         if (success) {
             checkCurrentPlayerWin();
         }
+
+        return success;
     }
 
-    public void finishSlyDeal(ActionCards slyDealCard, Player targetPlayer, PropertiesCards stolenCard) {
+    public boolean finishSlyDeal(ActionCards slyDealCard, Player targetPlayer, PropertiesCards stolenCard) {
         boolean success = actionCardService.finishSlyDeal(
                 getCurrentPlayer(),
                 slyDealCard,
@@ -131,9 +133,11 @@ public class Game {
         if (success) {
             checkCurrentPlayerWin();
         }
+
+        return success;
     }
 
-    public void finishDealBreaker(ActionCards dealBreakerCard,
+    public boolean finishDealBreaker(ActionCards dealBreakerCard,
                                   Player targetPlayer,
                                   ArrayList<PropertiesCards> selectedSet) {
         boolean success = actionCardService.finishDealBreaker(
@@ -146,9 +150,11 @@ public class Game {
         if (success) {
             checkCurrentPlayerWin();
         }
+
+        return success;
     }
 
-    public void finishDebtCollector(ActionCards debtCollectorCard, Player targetPlayer) {
+    public boolean finishDebtCollector(ActionCards debtCollectorCard, Player targetPlayer) {
         boolean success = actionCardService.finishDebtCollector(
                 getCurrentPlayer(),
                 debtCollectorCard,
@@ -158,9 +164,11 @@ public class Game {
         if (success) {
             checkCurrentPlayerWin();
         }
+
+        return success;
     }
 
-    public void finishTwoColorRent(ActionCards rentCard,
+    public boolean finishTwoColorRent(ActionCards rentCard,
                                    PropertyColor selectedColor,
                                    boolean useDoubleRent) {
         boolean success = actionCardService.finishTwoColorRent(
@@ -173,9 +181,11 @@ public class Game {
         if (success) {
             checkCurrentPlayerWin();
         }
+
+        return success;
     }
 
-    public void finishMultipleColorRent(ActionCards rentCard,
+    public boolean finishMultipleColorRent(ActionCards rentCard,
                                         Player targetPlayer,
                                         PropertyColor selectedColor,
                                         boolean useDoubleRent) {
@@ -190,22 +200,28 @@ public class Game {
         if (success) {
             checkCurrentPlayerWin();
         }
+
+        return success;
     }
 
-    public void finishHouse(ActionCards houseCard, PropertyColor selectedColor) {
+    public boolean finishHouse(ActionCards houseCard, PropertyColor selectedColor) {
         boolean success = actionCardService.finishHouse(getCurrentPlayer(), houseCard, selectedColor);
 
         if (success) {
             checkCurrentPlayerWin();
         }
+
+        return success;
     }
 
-    public void finishHotel(ActionCards hotelCard, PropertyColor selectedColor) {
+    public boolean finishHotel(ActionCards hotelCard, PropertyColor selectedColor) {
         boolean success = actionCardService.finishHotel(getCurrentPlayer(), hotelCard, selectedColor);
 
         if (success) {
             checkCurrentPlayerWin();
         }
+
+        return success;
     }
 
     public boolean hasDoubleTheRentCard(Player player) {return actionCardService.hasDoubleTheRentCard(player);}
