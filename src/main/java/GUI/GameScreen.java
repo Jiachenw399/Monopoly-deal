@@ -194,7 +194,9 @@ public class GameScreen {
             double x = startX + index * cardGap;
             double y = startY;
 
-            ScreenDrawHelper.drawSmallCard(gc, x, y, "Money", card.getValue() + "M", Color.GOLD);
+            if (!CardImageHelper.drawCardImage(gc, card, x, y, smallCardWidth, smallCardHeight)) {
+                ScreenDrawHelper.drawSmallCard(gc, x, y, "Money", card.getValue() + "M", Color.GOLD);
+            }
             index++;
         }
     }
@@ -224,16 +226,20 @@ public class GameScreen {
                 gc.setLineWidth(1);
             }
 
-            ScreenDrawHelper.drawSmallCard(gc, x, y, "Property", colorText, Color.LIGHTBLUE);
+            boolean hasImage = CardImageHelper.drawCardImage(gc, card, x, y, smallCardWidth, smallCardHeight);
+
+            if (!hasImage) {
+                ScreenDrawHelper.drawSmallCard(gc, x, y, "Property", colorText, Color.LIGHTBLUE);
+
+                if (card.isWildCard()) {
+                    gc.setFill(Color.RED);
+                    gc.setFont(Font.font("Arial", 10));
+                    gc.setTextAlign(TextAlignment.CENTER);
+                    gc.fillText("WILD", x + 30, y + 75);
+                }
+            }
 
             drawPropertyBuildingLabel(gc, card, x, y);
-
-            if (card.isWildCard()) {
-                gc.setFill(Color.RED);
-                gc.setFont(Font.font("Arial", 10));
-                gc.setTextAlign(TextAlignment.CENTER);
-                gc.fillText("WILD", x + 30, y + 75);
-            }
 
             index++;
         }
@@ -399,6 +405,11 @@ public class GameScreen {
     }
 
     private void drawHandCard(GraphicsContext gc, Card card, double x, double y, int number) {
+        if (CardImageHelper.drawCardImage(gc, card, x, y, cardWidth, cardHeight)) {
+            CardImageHelper.drawHandNumberBadge(gc, number, x + 5, y + 5);
+            return;
+        }
+
         Color color = Color.WHITE;
         String type = "";
         String name = "";
@@ -876,6 +887,10 @@ public class GameScreen {
         if (selectedPaymentCards.contains(card)) {
             gc.setFill(Color.YELLOW);
             gc.fillRoundRect(x - 5, y - 5, 78, 103, 14, 14);
+        }
+
+        if (CardImageHelper.drawCardImage(gc, card, x, y, 68, 93)) {
+            return;
         }
 
         gc.setFill(color);
