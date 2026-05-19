@@ -19,7 +19,7 @@ public class MonopolyApp extends Application {
         initializeScreens();
 
         Group root = createRoot();
-        Scene scene = new Scene(root);
+        Scene scene = new Scene(root, GuiScale.canvasWidth(), GuiScale.canvasHeight());
 
         registerListeners(scene);
         setupStage(primaryStage, scene);
