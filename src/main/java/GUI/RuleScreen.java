@@ -24,12 +24,13 @@ public class RuleScreen {
     };
 
     public RuleScreen() {
-        canvas = new Canvas(Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+        canvas = new Canvas(GuiScale.canvasWidth(), GuiScale.canvasHeight());
         isShow = false;
     }
 
     public void paint() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
+        GuiScale.prepare(gc);
 
         drawBackground(gc);
         drawTitle(gc);
@@ -38,8 +39,7 @@ public class RuleScreen {
     }
 
     public void clear() {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        GuiScale.clear(canvas);
     }
 
     private void drawBackground(GraphicsContext gc) {

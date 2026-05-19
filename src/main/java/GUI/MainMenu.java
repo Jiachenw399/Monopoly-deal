@@ -13,12 +13,13 @@ public class MainMenu {
     private boolean isShow;
 
     public MainMenu() {
-        canvas = new Canvas(Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+        canvas = new Canvas(GuiScale.canvasWidth(), GuiScale.canvasHeight());
         isShow = true;
     }
 
     public void paint() {
         GraphicsContext gc = canvas.getGraphicsContext2D();
+        GuiScale.prepare(gc);
 
         drawBackground(gc);
         drawMenuText(gc);
@@ -26,8 +27,7 @@ public class MainMenu {
     }
 
     public void clear() {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        GuiScale.clear(canvas);
     }
 
     private void drawBackground(GraphicsContext gc) {

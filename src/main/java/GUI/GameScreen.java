@@ -38,7 +38,7 @@ public class GameScreen {
 
     public GameScreen(Game game) {
         this.game = game;
-        canvas = new Canvas(Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+        canvas = new Canvas(GuiScale.canvasWidth(), GuiScale.canvasHeight());
         slyDealPanel = new SlyDealPanel(game);
         debtCollectorPanel = new DebtCollectorPanel(game);
         dealBreakerPanel = new DealBreakerPanel(game);
@@ -67,6 +67,7 @@ public class GameScreen {
     }
 
     public void paint() {
+        GuiScale.prepare(canvas.getGraphicsContext2D());
         syncViewedPlayerWithCurrentTurn();
         backGroundScreen.drawAllBackground(canvas, wildCardSelectionPanel.getSelectedWildCard());
         playerViewPanel.drawPlayerViewButtons(canvas.getGraphicsContext2D(), game, viewedPlayerIndex);
@@ -140,8 +141,7 @@ public class GameScreen {
     }
 
     public void clear() {
-        GraphicsContext gc = canvas.getGraphicsContext2D();
-        gc.clearRect(0, 0, canvas.getWidth(), canvas.getHeight());
+        GuiScale.clear(canvas);
     }
 
     public void startSlyDealSelection(ActionCards card) {

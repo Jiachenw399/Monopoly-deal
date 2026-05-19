@@ -20,7 +20,10 @@ public class GameListener {
     }
 
     public void addListener(Scene scene) {
-        scene.setOnMouseClicked(event -> handleMouseClick(event.getX(), event.getY()));
+        scene.setOnMouseClicked(event -> handleMouseClick(
+                GuiScale.toLogical(event.getX()),
+                GuiScale.toLogical(event.getY())
+        ));
     }
 
     private void handleMouseClick(double x, double y) {
