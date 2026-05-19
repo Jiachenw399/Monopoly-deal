@@ -66,6 +66,7 @@ public class CardPlayService {
 
         return switch (type) {
             case SLY_DEAL,
+                 FORCED_DEAL,
                  DEAL_BREAKER,
                  BIRTHDAY,
                  DEBT_COLLECTOR,

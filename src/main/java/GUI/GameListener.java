@@ -56,6 +56,10 @@ public class GameListener {
             return true;
         }
 
+        if (handleForcedDealSelection(x, y)) {
+            return true;
+        }
+
         if (handleMultipleColorRentSelection(x, y)) {
             return true;
         }
@@ -101,6 +105,26 @@ public class GameListener {
         }
 
         return gameScreen.handlePaymentCardClick(x, y);
+    }
+
+    private boolean handleForcedDealSelection(double x, double y) {
+        if (!gameScreen.isForcedDealSelecting()) {
+            return false;
+        }
+
+        if (gameScreen.isForcedDealCancelClicked(x, y)) {
+            gameScreen.cancelForcedDealSelection();
+            return true;
+        }
+
+        Player targetPlayer = gameScreen.getClickedForcedDealTarget(x, y);
+
+        if (targetPlayer != null) {
+            gameScreen.finish(targetPlayer);
+            return true;
+        }
+
+        return true;
     }
 
     private boolean handleSlyDealSelection(double x, double y) {
@@ -385,7 +409,10 @@ public class GameListener {
                 gameScreen.startBuildingSelection(actionCard);
                 yield true;
             }
-            case FORCED_DEAL -> false;
+            case FORCED_DEAL -> {
+                gameScreen.startForcedDealSelection(actionCard);
+                yield true;
+            }
             case BIRTHDAY -> {
                 game.finishBirthday(actionCard);
                 yield true;

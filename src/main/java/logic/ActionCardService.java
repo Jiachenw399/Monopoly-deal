@@ -148,6 +148,27 @@ public class ActionCardService {
         return true;
     }
 
+    public boolean finishForcedDeal(Player currentPlayer,
+                                    ActionCards forcedDealCard,
+                                    Player targetPlayer,
+                                    PropertiesCards currentPlayerCard,
+                                    PropertiesCards targetPlayerCard) {
+        if (!canFinishForcedDeal(currentPlayer, forcedDealCard, targetPlayer, currentPlayerCard, targetPlayerCard)) {
+            return false;
+        }
+
+        moveActionCardToDiscard(currentPlayer, forcedDealCard);
+
+        currentPlayer.getPropertyCards().remove(currentPlayerCard);
+        targetPlayer.getPropertyCards().remove(targetPlayerCard);
+
+        currentPlayer.getPropertyCards().add(targetPlayerCard);
+        targetPlayer.getPropertyCards().add(currentPlayerCard);
+
+        increaseUseCardTimes(currentPlayer);
+        return true;
+    }
+
     public boolean hasDoubleTheRentCard(Player player) {
         for (Card card : player.getHandCards()) {
             if (card instanceof ActionCards actionCard
@@ -173,6 +194,30 @@ public class ActionCardService {
 
         return targetPlayer.getPropertyCards().contains(stolenCard)
                 && targetPlayer.canLosePropertyToSlyDeal(stolenCard);
+    }
+
+    private boolean canFinishForcedDeal(Player currentPlayer,
+                                        ActionCards card,
+                                        Player targetPlayer,
+                                        PropertiesCards currentPlayerCard,
+                                        PropertiesCards targetPlayerCard) {
+        if (!canFinishActionCard(currentPlayer, card, ActionCardType.FORCED_DEAL)) {
+            return false;
+        }
+
+        if (targetPlayer == null || targetPlayer == currentPlayer) {
+            return false;
+        }
+
+        if (currentPlayerCard == null || targetPlayerCard == null) {
+            return false;
+        }
+
+        if (!currentPlayer.getPropertyCards().contains(currentPlayerCard)) {
+            return false;
+        }
+
+        return targetPlayer.getPropertyCards().contains(targetPlayerCard);
     }
 
     private boolean canFinishDealBreaker(Player currentPlayer,

@@ -224,6 +224,25 @@ public class Game {
         return success;
     }
 
+    public boolean finishForcedDeal(ActionCards forcedDealCard,
+                                    Player targetPlayer,
+                                    PropertiesCards currentPlayerCard,
+                                    PropertiesCards targetPlayerCard) {
+        boolean success = actionCardService.finishForcedDeal(
+                getCurrentPlayer(),
+                forcedDealCard,
+                targetPlayer,
+                currentPlayerCard,
+                targetPlayerCard
+        );
+
+        if (success) {
+            checkCurrentPlayerWin();
+        }
+
+        return success;
+    }
+
     public boolean hasDoubleTheRentCard(Player player) {return actionCardService.hasDoubleTheRentCard(player);}
 
     public boolean isPaymentSelecting() {return paymentManager.isPaymentSelecting();}

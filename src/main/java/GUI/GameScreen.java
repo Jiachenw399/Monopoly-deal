@@ -52,8 +52,11 @@ public class GameScreen {
     private double handAreaWidth = 740;
     private double handStartY = Game.SCREEN_HEIGHT - 150;
 
+    private ActionCards pendingForcedDealCard = null;
     private ActionCards pendingBuildingCard = null;
     private RentCalculator rentCalculator;
+
+
 
     public GameScreen(Game game) {
         this.game = game;
@@ -96,6 +99,7 @@ public class GameScreen {
         drawPaymentSelection();
         drawMultipleColorRentSelection();
         drawBuildingSelection();
+        drawForcedDealSelection();
     }
     private void syncViewedPlayerWithCurrentTurn() {
         int currentTurnPlayerIndex = game.getCurrentPlayerIndex();
@@ -1502,5 +1506,112 @@ public class GameScreen {
         }
 
         gc.setTextBaseline(VPos.TOP);
+    }
+
+    public void startForcedDealSelection(ActionCards card) {
+        pendingForcedDealCard = card;
+        selectedWildCard = null;
+    }
+
+    public void cancelForcedDealSelection() {
+        pendingForcedDealCard = null;
+    }
+
+    public boolean isForcedDealSelecting() {
+        return pendingForcedDealCard != null;
+    }
+
+    public ActionCards getPendingForcedDealCard() {
+        return pendingForcedDealCard;
+    }
+
+    public boolean isForcedDealCancelClicked(double mouseX, double mouseY) {
+        return isForcedDealSelecting()
+                && mouseX >= 690 && mouseX <= 830
+                && mouseY >= 535 && mouseY <= 575;
+    }
+
+    public Player getClickedForcedDealTarget(double mouseX, double mouseY) {
+        if (!isForcedDealSelecting()) {
+            return null;
+        }
+
+        double x = 340;
+        double y = 185;
+        double width = 180;
+        double height = 45;
+        double gap = 18;
+
+        int displayIndex = 0;
+
+        for (int i = 0; i < game.getPlayers().size(); i++) {
+            if (i == game.getCurrentPlayerIndex()) {
+                continue;
+            }
+
+            double buttonY = y + displayIndex * (height + gap);
+
+            if (mouseX >= x && mouseX <= x + width
+                    && mouseY >= buttonY && mouseY <= buttonY + height) {
+                return game.getPlayers().get(i);
+            }
+
+            displayIndex++;
+        }
+
+        return null;
+    }
+
+    private void drawForcedDealSelection() {
+        if (!isForcedDealSelecting()) {
+            return;
+        }
+
+        GraphicsContext gc = canvas.getGraphicsContext2D();
+
+        gc.setFill(Color.rgb(0, 0, 0, 0.76));
+        gc.fillRect(0, 0, Game.SCREEN_WIDTH, Game.SCREEN_HEIGHT);
+
+        gc.setFill(Color.WHITE);
+        gc.setFont(Font.font("Arial", 28));
+        gc.setTextAlign(TextAlignment.CENTER);
+        gc.setTextBaseline(VPos.TOP);
+        gc.fillText("FORCED DEAL: Choose a target player", Game.SCREEN_WIDTH / 2, 55);
+
+        gc.setFont(Font.font("Arial", 16));
+        gc.fillText("After choosing a player, select one property from each side to exchange.",
+                Game.SCREEN_WIDTH / 2, 95);
+
+        drawForcedDealTargetButtons(gc);
+
+        ScreenDrawHelper.drawButton(gc, 690, 535, 140, 40, "CANCEL");
+    }
+
+    private void drawForcedDealTargetButtons(GraphicsContext gc) {
+        double x = 340;
+        double y = 185;
+        double width = 180;
+        double height = 45;
+        double gap = 18;
+
+        gc.setFill(Color.WHITE);
+        gc.setFont(Font.font("Arial", 20));
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.TOP);
+        gc.fillText("Target Player", x, 145);
+
+        int displayIndex = 0;
+
+        for (int i = 0; i < game.getPlayers().size(); i++) {
+            if (i == game.getCurrentPlayerIndex()) {
+                continue;
+            }
+
+            double buttonY = y + displayIndex * (height + gap);
+
+            ScreenDrawHelper.drawButton(gc, x, buttonY, width, height, "Player " + (i + 1));
+
+            displayIndex++;
+        }
     }
 }
