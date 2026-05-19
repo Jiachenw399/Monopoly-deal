@@ -24,11 +24,29 @@ public class BackGroundScreen {
     private final double smallCardHeight = 85;
     private final double cardWidth = 82;
 
+    private int bankPageIndex = 0;
+    private int propertyPageIndex = 0;
+    private int lastPlayerIndex = -1;
+
+    private final int cardsPerPage = 8;
+
+    private final double bankPrevX = 645;
+    private final double bankNextX = 695;
+    private final double bankArrowY = 130;
+
+    private final double propertyPrevX = 645;
+    private final double propertyNextX = 695;
+    private final double propertyArrowY = 272;
+
+    private final double arrowWidth = 34;
+    private final double arrowHeight = 28;
+
     public BackGroundScreen(Game game) {
         this.game = game;
     }
 
     public void drawAllBackground(Canvas canvas, PropertiesCards selectedWildCard) {
+        resetPageWhenPlayerChanged();
         drawBackground(canvas);
         drawCurrentPlayer(canvas);
         drawBankCards(canvas);
@@ -36,6 +54,16 @@ public class BackGroundScreen {
         drawHandCards(canvas);
         drawButtons(canvas);
         drawWinMessage(canvas);
+    }
+
+    private void resetPageWhenPlayerChanged() {
+        int currentPlayerIndex = game.getCurrentPlayerIndex();
+
+        if (currentPlayerIndex != lastPlayerIndex) {
+            bankPageIndex = 0;
+            propertyPageIndex = 0;
+            lastPlayerIndex = currentPlayerIndex;
+        }
     }
 
     private void drawBackground(Canvas canvas) {
@@ -116,24 +144,35 @@ public class BackGroundScreen {
         ScreenDrawHelper.drawSectionTitle(gc, "Bank Area", 32, 132);
 
         int total = PlayerInfoHelper.getBankTotal(currentPlayer);
+        int cardCount = currentPlayer.getBankCards().size();
+        int maxPage = getMaxPage(cardCount);
+
+        bankPageIndex = keepPageInRange(bankPageIndex, maxPage);
 
         gc.setFont(Font.font("Arial", 15));
         gc.setFill(ScreenDrawHelper.ACCENT);
         gc.fillText("Total Money: " + total + "M", 190, 134);
 
+        drawPageText(gc, bankPageIndex, maxPage, 520, 134);
+        drawArrowButtons(gc, bankPrevX, bankNextX, bankArrowY, bankPageIndex, maxPage);
+
         double startX = 32;
         double startY = 160;
         double cardGap = 75;
 
-        int index = 0;
-        for (Card card : currentPlayer.getBankCards()) {
-            double x = startX + index * cardGap;
+        int startIndex = bankPageIndex * cardsPerPage;
+        int endIndex = Math.min(startIndex + cardsPerPage, cardCount);
+
+        for (int i = startIndex; i < endIndex; i++) {
+            Card card = currentPlayer.getBankCards().get(i);
+
+            int displayIndex = i - startIndex;
+            double x = startX + displayIndex * cardGap;
             double y = startY;
 
             if (!CardImageHelper.drawCardImage(gc, card, x, y, smallCardWidth, smallCardHeight)) {
                 ScreenDrawHelper.drawSmallCard(gc, x, y, "Money", card.getValue() + "M", Color.GOLD);
             }
-            index++;
         }
     }
 
@@ -144,13 +183,26 @@ public class BackGroundScreen {
         ScreenDrawHelper.drawPanel(gc, 16, 260, 735, 128);
         ScreenDrawHelper.drawSectionTitle(gc, "Property Area", 32, 274);
 
+        int cardCount = currentPlayer.getPropertyCards().size();
+        int maxPage = getMaxPage(cardCount);
+
+        propertyPageIndex = keepPageInRange(propertyPageIndex, maxPage);
+
+        drawPageText(gc, propertyPageIndex, maxPage, 520, 276);
+        drawArrowButtons(gc, propertyPrevX, propertyNextX, propertyArrowY, propertyPageIndex, maxPage);
+
         double startX = 32;
         double startY = 302;
         double cardGap = 75;
 
-        int index = 0;
-        for (PropertiesCards card : currentPlayer.getPropertyCards()) {
-            double x = startX + index * cardGap;
+        int startIndex = propertyPageIndex * cardsPerPage;
+        int endIndex = Math.min(startIndex + cardsPerPage, cardCount);
+
+        for (int i = startIndex; i < endIndex; i++) {
+            PropertiesCards card = currentPlayer.getPropertyCards().get(i);
+
+            int displayIndex = i - startIndex;
+            double x = startX + displayIndex * cardGap;
             double y = startY;
 
             String colorText = getDisplayColorName(card.getCurrentColor());
@@ -176,10 +228,56 @@ public class BackGroundScreen {
             }
 
             drawPropertyBuildingLabel(gc, card, x, y);
-            index++;
         }
 
         drawWildColorButtons(gc, selectedWildCard);
+    }
+
+    private int getMaxPage(int cardCount) {
+        if (cardCount <= 0) {
+            return 0;
+        }
+
+        return (cardCount - 1) / cardsPerPage;
+    }
+
+    private int keepPageInRange(int pageIndex, int maxPage) {
+        if (pageIndex < 0) {
+            return 0;
+        }
+
+        if (pageIndex > maxPage) {
+            return maxPage;
+        }
+
+        return pageIndex;
+    }
+
+    private void drawPageText(GraphicsContext gc, int pageIndex, int maxPage, double x, double y) {
+        gc.setFill(ScreenDrawHelper.MUTED_TEXT);
+        gc.setFont(Font.font("Arial", 13));
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.TOP);
+        gc.fillText("Page " + (pageIndex + 1) + "/" + (maxPage + 1), x, y);
+    }
+
+    private void drawArrowButtons(GraphicsContext gc,
+                                  double prevX,
+                                  double nextX,
+                                  double y,
+                                  int pageIndex,
+                                  int maxPage) {
+        if (pageIndex > 0) {
+            ScreenDrawHelper.drawButton(gc, prevX, y, arrowWidth, arrowHeight, "<");
+        } else {
+            ScreenDrawHelper.drawDisabledButton(gc, prevX, y, arrowWidth, arrowHeight, "<");
+        }
+
+        if (pageIndex < maxPage) {
+            ScreenDrawHelper.drawButton(gc, nextX, y, arrowWidth, arrowHeight, ">");
+        } else {
+            ScreenDrawHelper.drawDisabledButton(gc, nextX, y, arrowWidth, arrowHeight, ">");
+        }
     }
 
     private void drawPropertyBuildingLabel(GraphicsContext gc, PropertiesCards card, double x, double y) {
@@ -386,5 +484,71 @@ public class BackGroundScreen {
         }
 
         return builder.toString();
+    }
+
+    public boolean handlePageButtonClick(double mouseX, double mouseY) {
+        if (handleBankPageButtonClick(mouseX, mouseY)) {
+            return true;
+        }
+
+        return handlePropertyPageButtonClick(mouseX, mouseY);
+    }
+
+    private boolean handleBankPageButtonClick(double mouseX, double mouseY) {
+        Player currentPlayer = game.getCurrentPlayer();
+        int maxPage = getMaxPage(currentPlayer.getBankCards().size());
+
+        if (isInside(mouseX, mouseY, bankPrevX, bankArrowY, arrowWidth, arrowHeight)) {
+            if (bankPageIndex > 0) {
+                bankPageIndex--;
+            }
+
+            return true;
+        }
+
+        if (isInside(mouseX, mouseY, bankNextX, bankArrowY, arrowWidth, arrowHeight)) {
+            if (bankPageIndex < maxPage) {
+                bankPageIndex++;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean handlePropertyPageButtonClick(double mouseX, double mouseY) {
+        Player currentPlayer = game.getCurrentPlayer();
+        int maxPage = getMaxPage(currentPlayer.getPropertyCards().size());
+
+        if (isInside(mouseX, mouseY, propertyPrevX, propertyArrowY, arrowWidth, arrowHeight)) {
+            if (propertyPageIndex > 0) {
+                propertyPageIndex--;
+            }
+
+            return true;
+        }
+
+        if (isInside(mouseX, mouseY, propertyNextX, propertyArrowY, arrowWidth, arrowHeight)) {
+            if (propertyPageIndex < maxPage) {
+                propertyPageIndex++;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isInside(double mouseX,
+                             double mouseY,
+                             double x,
+                             double y,
+                             double width,
+                             double height) {
+        return mouseX >= x
+                && mouseX <= x + width
+                && mouseY >= y
+                && mouseY <= y + height;
     }
 }

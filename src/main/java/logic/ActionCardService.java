@@ -12,7 +12,6 @@ import java.util.ArrayList;
 
 public class ActionCardService {
     private final ArrayList<Player> players;
-    private final DrawPileAndDiscardPile drawCards;
     private final PaymentManager paymentManager;
     private final RentCalculator rentCalculator;
 
@@ -21,9 +20,19 @@ public class ActionCardService {
                              PaymentManager paymentManager,
                              RentCalculator rentCalculator) {
         this.players = players;
-        this.drawCards = drawCards;
         this.paymentManager = paymentManager;
         this.rentCalculator = rentCalculator;
+    }
+
+    public boolean finishPassGo(Player currentPlayer, ActionCards passGoCard) {
+        if (!canFinishActionCard(currentPlayer, passGoCard, ActionCardType.PASS_GO)) {
+            return false;
+        }
+
+        moveActionCardToDiscard(currentPlayer, passGoCard);
+        currentPlayer.takeCard(2);
+        increaseUseCardTimes(currentPlayer);
+        return true;
     }
 
     public boolean finishBirthday(Player currentPlayer, ActionCards birthdayCard) {
@@ -217,7 +226,15 @@ public class ActionCardService {
             return false;
         }
 
-        return targetPlayer.getPropertyCards().contains(targetPlayerCard);
+        if (!targetPlayer.getPropertyCards().contains(targetPlayerCard)) {
+            return false;
+        }
+
+        if (!PlayerInfoHelper.canBeStolenBySlyDeal(currentPlayer, currentPlayerCard)) {
+            return false;
+        }
+
+        return PlayerInfoHelper.canBeStolenBySlyDeal(targetPlayer, targetPlayerCard);
     }
 
     private boolean canFinishDealBreaker(Player currentPlayer,
@@ -232,16 +249,20 @@ public class ActionCardService {
             return false;
         }
 
+        PropertyColor color = selectedSet.get(0).getCurrentColor();
+
+        if (color == null) {
+            return false;
+        }
+
         for (PropertiesCards propertyCard : selectedSet) {
             if (!targetPlayer.getPropertyCards().contains(propertyCard)) {
                 return false;
             }
-        }
 
-        PropertyColor color = selectedSet.getFirst().getCurrentColor();
-
-        if (color == null) {
-            return false;
+            if (propertyCard.getCurrentColor() != color) {
+                return false;
+            }
         }
 
         return selectedSet.size() >= color.getAmountToCompleteSet();

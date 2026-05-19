@@ -6,7 +6,6 @@ import model.Player;
 import java.util.ArrayList;
 
 public class GameSetupService {
-    private static final int DEFAULT_PLAYER_COUNT = 4;
     private static final int INITIAL_CARD_COUNT = 5;
 
     public void setupPlayers(ArrayList<Player> players, DrawPileAndDiscardPile drawCards, int playerCount) {

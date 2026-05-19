@@ -28,15 +28,15 @@ public class GameListener {
             return;
         }
 
-        if (handlePlayerDetailPopupClick(x, y)) {
-            return;
-        }
-
         if (handleSelectionModeClick(x, y)) {
             return;
         }
 
         if (game.isWin()) {
+            return;
+        }
+
+        if (gameScreen.handleBackgroundPageButtonClick(x, y)) {
             return;
         }
 
@@ -455,7 +455,7 @@ public class GameListener {
                 gameScreen.startMultipleColorRentSelection(actionCard);
                 yield true;
             }
-            case HOUSE -> {
+            case HOUSE,HOTEL -> {
                 gameScreen.startBuildingSelection(actionCard);
                 yield true;
             }
@@ -473,10 +473,6 @@ public class GameListener {
                 yield true;
             }
             case DOUBLE_THE_RENT -> false;
-            case HOTEL -> {
-                gameScreen.startBuildingSelection(actionCard);
-                yield true;
-            }
             case DEAL_BREAKER -> {
                 gameScreen.startDealBreakerSelection(actionCard);
                 yield true;
@@ -486,7 +482,10 @@ public class GameListener {
                 gameScreen.startTwoColorRentSelection(actionCard);
                 yield true;
             }
-            case PASS_GO -> false;
+            case PASS_GO -> {
+                game.finishPassGo(actionCard);
+                yield true;
+            }
             default -> false;
         };
     }

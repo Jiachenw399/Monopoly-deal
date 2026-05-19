@@ -127,6 +127,10 @@ public class GameScreen {
         return -1;
     }
 
+    public boolean handleBackgroundPageButtonClick(double mouseX, double mouseY) {
+        return backGroundScreen.handlePageButtonClick(mouseX, mouseY);
+    }
+
     public boolean isEndTurnClicked(double mouseX, double mouseY) {
         return mouseX >= 820 && mouseX <= 990 && mouseY >= 520 && mouseY <= 560;
     }

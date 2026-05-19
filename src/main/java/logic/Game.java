@@ -112,6 +112,16 @@ public class Game {
         return success;
     }
 
+    public boolean finishPassGo(ActionCards passGoCard) {
+        boolean success = actionCardService.finishPassGo(getCurrentPlayer(), passGoCard);
+
+        if (success) {
+            checkCurrentPlayerWin();
+        }
+
+        return success;
+    }
+
     public boolean finishBirthday(ActionCards birthdayCard) {
         boolean success = actionCardService.finishBirthday(getCurrentPlayer(), birthdayCard);
 

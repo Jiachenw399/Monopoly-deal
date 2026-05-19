@@ -25,8 +25,23 @@ public class PaymentSelectionPanel {
     private final double cardWidth = 68;
     private final double cardHeight = 93;
     private final double cardGapX = 90;
-    private final double cardGapY = 105;
-    private final int cardsPerRow = 7;
+
+    private final int cardsPerPage = 7;
+
+    private int bankPageIndex = 0;
+    private int propertyPageIndex = 0;
+    private Game.PaymentRequest lastRequest = null;
+
+    private final double bankPrevX = 535;
+    private final double bankNextX = 585;
+    private final double bankArrowY = 142;
+
+    private final double propertyPrevX = 535;
+    private final double propertyNextX = 585;
+    private final double propertyArrowY = 327;
+
+    private final double arrowWidth = 34;
+    private final double arrowHeight = 28;
 
     public PaymentSelectionPanel(Game game) {
         this.game = game;
@@ -39,6 +54,8 @@ public class PaymentSelectionPanel {
         }
 
         Game.PaymentRequest request = game.getCurrentPaymentRequest();
+        resetPagesWhenRequestChanged(request);
+
         Player payer = request.getPayer();
         Player receiver = request.getReceiver();
 
@@ -48,6 +65,14 @@ public class PaymentSelectionPanel {
         drawPaymentPropertyCards(gc, payer);
         drawReceiverPreview(gc, receiver);
         drawActionButtons(gc, request, payer);
+    }
+
+    private void resetPagesWhenRequestChanged(Game.PaymentRequest request) {
+        if (request != lastRequest) {
+            bankPageIndex = 0;
+            propertyPageIndex = 0;
+            lastRequest = request;
+        }
     }
 
     private void drawOverlay(GraphicsContext gc) {
@@ -91,12 +116,28 @@ public class PaymentSelectionPanel {
         gc.setTextBaseline(VPos.TOP);
         gc.fillText("Bank Cards", 60, 145);
 
-        for (int i = 0; i < payer.getBankCards().size(); i++) {
+        int cardCount = payer.getBankCards().size();
+        int maxPage = getMaxPage(cardCount);
+        bankPageIndex = keepPageInRange(bankPageIndex, maxPage);
+
+        drawPageText(gc, bankPageIndex, maxPage, 430, 148);
+        drawArrowButtons(gc, bankPrevX, bankNextX, bankArrowY, bankPageIndex, maxPage);
+
+        int startIndex = bankPageIndex * cardsPerPage;
+        int endIndex = Math.min(startIndex + cardsPerPage, cardCount);
+
+        for (int i = startIndex; i < endIndex; i++) {
             Card card = payer.getBankCards().get(i);
-            double x = bankStartX + (i % cardsPerRow) * cardGapX;
-            double y = bankStartY + (i / cardsPerRow) * cardGapY;
+            int displayIndex = i - startIndex;
+
+            double x = bankStartX + displayIndex * cardGapX;
+            double y = bankStartY;
 
             drawPaymentCard(gc, card, x, y, "Money", card.getValue() + "M", Color.GOLD);
+        }
+
+        if (cardCount == 0) {
+            drawEmptyText(gc, "No bank cards", bankStartX, bankStartY + 32);
         }
     }
 
@@ -107,14 +148,85 @@ public class PaymentSelectionPanel {
         gc.setTextBaseline(VPos.TOP);
         gc.fillText("Property Cards", 60, 330);
 
-        for (int i = 0; i < payer.getPropertyCards().size(); i++) {
+        int cardCount = payer.getPropertyCards().size();
+        int maxPage = getMaxPage(cardCount);
+        propertyPageIndex = keepPageInRange(propertyPageIndex, maxPage);
+
+        drawPageText(gc, propertyPageIndex, maxPage, 430, 333);
+        drawArrowButtons(gc, propertyPrevX, propertyNextX, propertyArrowY, propertyPageIndex, maxPage);
+
+        int startIndex = propertyPageIndex * cardsPerPage;
+        int endIndex = Math.min(startIndex + cardsPerPage, cardCount);
+
+        for (int i = startIndex; i < endIndex; i++) {
             PropertiesCards card = payer.getPropertyCards().get(i);
-            double x = propertyStartX + (i % cardsPerRow) * cardGapX;
-            double y = propertyStartY + (i / cardsPerRow) * cardGapY;
+            int displayIndex = i - startIndex;
+
+            double x = propertyStartX + displayIndex * cardGapX;
+            double y = propertyStartY;
             String text = getDisplayColorName(card.getCurrentColor());
 
             drawPaymentCard(gc, card, x, y, "Property", text, Color.LIGHTBLUE);
         }
+
+        if (cardCount == 0) {
+            drawEmptyText(gc, "No property cards", propertyStartX, propertyStartY + 32);
+        }
+    }
+
+    private int getMaxPage(int cardCount) {
+        if (cardCount <= 0) {
+            return 0;
+        }
+
+        return (cardCount - 1) / cardsPerPage;
+    }
+
+    private int keepPageInRange(int pageIndex, int maxPage) {
+        if (pageIndex < 0) {
+            return 0;
+        }
+
+        if (pageIndex > maxPage) {
+            return maxPage;
+        }
+
+        return pageIndex;
+    }
+
+    private void drawPageText(GraphicsContext gc, int pageIndex, int maxPage, double x, double y) {
+        gc.setFill(Color.LIGHTGRAY);
+        gc.setFont(Font.font("Arial", 13));
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.TOP);
+        gc.fillText("Page " + (pageIndex + 1) + "/" + (maxPage + 1), x, y);
+    }
+
+    private void drawArrowButtons(GraphicsContext gc,
+                                  double prevX,
+                                  double nextX,
+                                  double y,
+                                  int pageIndex,
+                                  int maxPage) {
+        if (pageIndex > 0) {
+            ScreenDrawHelper.drawButton(gc, prevX, y, arrowWidth, arrowHeight, "<");
+        } else {
+            ScreenDrawHelper.drawDisabledButton(gc, prevX, y, arrowWidth, arrowHeight, "<");
+        }
+
+        if (pageIndex < maxPage) {
+            ScreenDrawHelper.drawButton(gc, nextX, y, arrowWidth, arrowHeight, ">");
+        } else {
+            ScreenDrawHelper.drawDisabledButton(gc, nextX, y, arrowWidth, arrowHeight, ">");
+        }
+    }
+
+    private void drawEmptyText(GraphicsContext gc, String text, double x, double y) {
+        gc.setFill(Color.LIGHTGRAY);
+        gc.setFont(Font.font("Arial", 15));
+        gc.setTextAlign(TextAlignment.LEFT);
+        gc.setTextBaseline(VPos.TOP);
+        gc.fillText(text, x, y);
     }
 
     private void drawReceiverPreview(GraphicsContext gc, Player receiver) {
@@ -291,36 +403,122 @@ public class PaymentSelectionPanel {
     }
 
     public boolean handleCardClick(double mouseX, double mouseY) {
-        if (!game.isPaymentSelecting()) {
+        Game.PaymentRequest request = game.getCurrentPaymentRequest();
+
+        if (request == null) {
             return false;
         }
 
-        Player payer = game.getCurrentPaymentRequest().getPayer();
-        Card clickedCard = getClickedBankCard(mouseX, mouseY, payer);
+        Player payer = request.getPayer();
 
-        if (clickedCard == null) {
-            clickedCard = getClickedPropertyCard(mouseX, mouseY, payer);
+        if (handlePageButtonClick(mouseX, mouseY, payer)) {
+            return true;
         }
 
-        if (clickedCard == null) {
-            return false;
+        Card bankCard = getClickedPaymentBankCard(mouseX, mouseY, payer);
+
+        if (bankCard != null) {
+            toggleSelectedCard(bankCard);
+            return true;
         }
 
-        if (selectedCards.contains(clickedCard)) {
-            selectedCards.remove(clickedCard);
-        } else {
-            selectedCards.add(clickedCard);
+        Card propertyCard = getClickedPaymentPropertyCard(mouseX, mouseY, payer);
+
+        if (propertyCard != null) {
+            toggleSelectedCard(propertyCard);
+            return true;
         }
 
-        return true;
+        return false;
     }
 
-    private Card getClickedBankCard(double mouseX, double mouseY, Player payer) {
-        for (int i = 0; i < payer.getBankCards().size(); i++) {
-            double x = bankStartX + (i % cardsPerRow) * cardGapX;
-            double y = bankStartY + (i / cardsPerRow) * cardGapY;
+    private void toggleSelectedCard(Card card) {
+        if (card == null) {
+            return;
+        }
 
-            if (isInsideCard(mouseX, mouseY, x, y)) {
+        if (selectedCards.contains(card)) {
+            selectedCards.remove(card);
+        } else {
+            selectedCards.add(card);
+        }
+    }
+
+    private boolean handlePageButtonClick(double mouseX, double mouseY, Player payer) {
+        if (handleBankPageButtonClick(mouseX, mouseY, payer)) {
+            return true;
+        }
+
+        return handlePropertyPageButtonClick(mouseX, mouseY, payer);
+    }
+
+    private boolean handleBankPageButtonClick(double mouseX, double mouseY, Player payer) {
+        int maxPage = getMaxPage(payer.getBankCards().size());
+
+        if (isInside(mouseX, mouseY, bankPrevX, bankArrowY, arrowWidth, arrowHeight)) {
+            if (bankPageIndex > 0) {
+                bankPageIndex--;
+            }
+
+            return true;
+        }
+
+        if (isInside(mouseX, mouseY, bankNextX, bankArrowY, arrowWidth, arrowHeight)) {
+            if (bankPageIndex < maxPage) {
+                bankPageIndex++;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean handlePropertyPageButtonClick(double mouseX, double mouseY, Player payer) {
+        int maxPage = getMaxPage(payer.getPropertyCards().size());
+
+        if (isInside(mouseX, mouseY, propertyPrevX, propertyArrowY, arrowWidth, arrowHeight)) {
+            if (propertyPageIndex > 0) {
+                propertyPageIndex--;
+            }
+
+            return true;
+        }
+
+        if (isInside(mouseX, mouseY, propertyNextX, propertyArrowY, arrowWidth, arrowHeight)) {
+            if (propertyPageIndex < maxPage) {
+                propertyPageIndex++;
+            }
+
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isInside(double mouseX,
+                             double mouseY,
+                             double x,
+                             double y,
+                             double width,
+                             double height) {
+        return mouseX >= x
+                && mouseX <= x + width
+                && mouseY >= y
+                && mouseY <= y + height;
+    }
+
+    private Card getClickedPaymentBankCard(double mouseX, double mouseY, Player payer) {
+        int startIndex = bankPageIndex * cardsPerPage;
+        int endIndex = Math.min(startIndex + cardsPerPage, payer.getBankCards().size());
+
+        for (int i = startIndex; i < endIndex; i++) {
+            int displayIndex = i - startIndex;
+
+            double x = bankStartX + displayIndex * cardGapX;
+            double y = bankStartY;
+
+            if (isInside(mouseX, mouseY, x, y, cardWidth, cardHeight)) {
                 return payer.getBankCards().get(i);
             }
         }
@@ -328,24 +526,22 @@ public class PaymentSelectionPanel {
         return null;
     }
 
-    private Card getClickedPropertyCard(double mouseX, double mouseY, Player payer) {
-        for (int i = 0; i < payer.getPropertyCards().size(); i++) {
-            double x = propertyStartX + (i % cardsPerRow) * cardGapX;
-            double y = propertyStartY + (i / cardsPerRow) * cardGapY;
+    private Card getClickedPaymentPropertyCard(double mouseX, double mouseY, Player payer) {
+        int startIndex = propertyPageIndex * cardsPerPage;
+        int endIndex = Math.min(startIndex + cardsPerPage, payer.getPropertyCards().size());
 
-            if (isInsideCard(mouseX, mouseY, x, y)) {
+        for (int i = startIndex; i < endIndex; i++) {
+            int displayIndex = i - startIndex;
+
+            double x = propertyStartX + displayIndex * cardGapX;
+            double y = propertyStartY;
+
+            if (isInside(mouseX, mouseY, x, y, cardWidth, cardHeight)) {
                 return payer.getPropertyCards().get(i);
             }
         }
 
         return null;
-    }
-
-    private boolean isInsideCard(double mouseX, double mouseY, double x, double y) {
-        return mouseX >= x
-                && mouseX <= x + cardWidth
-                && mouseY >= y
-                && mouseY <= y + cardHeight;
     }
 
     private String getDisplayColorName(PropertyColor color) {
@@ -357,7 +553,7 @@ public class PaymentSelectionPanel {
         StringBuilder builder = new StringBuilder();
 
         for (String word : words) {
-            if (builder.length() > 0) {
+            if (!builder.isEmpty()) {
                 builder.append(" ");
             }
 
